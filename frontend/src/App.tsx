@@ -172,6 +172,7 @@ const ActiveRequests: React.FC = () => {
     </ScrollArea>
   );
 };
+
 const Header: React.FC<{ activeTab: string, setActiveTab: (tab: string) => void, openModal: () => void }> = ({ activeTab, setActiveTab, openModal}) => (
   <header className="bg-gray-50 border border-gray-200 p-3 flex justify-between items-center">
     <div className="flex items-center space-x-4">
