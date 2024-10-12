@@ -100,35 +100,65 @@ const ActiveRequests: React.FC = () => {
     { id: '1', patient: 'Jane Doe', service: 'PET/CT skull thigh', status: 'pending', date: '2024-10-11' },
     { id: '2', patient: 'John Smith', service: 'MRI lower back', status: 'approved', date: '2024-10-10' },
     { id: '3', patient: 'Alice Johnson', service: 'Chest X-ray', status: 'denied', date: '2024-10-09' },
-    {id: '4', patient: 'Alice Johnson', service: 'Chest X-ray', status: 'denied', date: '2024-10-09' }
+    { id: '4', patient: 'Bob Williams', service: 'Ultrasound abdomen', status: 'pending', date: '2024-10-08' }
   ]);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'bg-yellow-200 text-yellow-800';
+      case 'approved':
+        return 'bg-green-200 text-green-800';
+      case 'denied':
+        return 'bg-red-200 text-red-800';
+      default:
+        return 'bg-gray-200 text-gray-800';
+    }
+  };
+
+  const getDotColor = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'bg-yellow-500';
+      case 'approved':
+        return 'bg-green-500';
+      case 'denied':
+        return 'bg-red-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
+  const capitalizeFirstLetter = (string: string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
 
   return (
     <ScrollArea className="h-max">
       <div className="space-y-4">
         {requests.map((request) => (
-         <Card key={request.id}>
-         <div className="flex justify-between items-center">
-           <div>
-             <CardHeader>
-               <CardTitle>{request.patient}</CardTitle>
-               <CardDescription>{request.service}</CardDescription>
-             </CardHeader>
-             <CardContent>
-               <p className="text-black">Date: {request.date}</p>
-             </CardContent>
-           </div>
-           <div className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(request.status)}`}>
-             {request.status}
-           </div>
-         </div>
-       </Card>
+          <Card key={request.id}>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardHeader>
+                  <CardTitle>{request.patient}</CardTitle>
+                  <CardDescription>{request.service}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-black">Date: {request.date}</p>
+                </CardContent>
+              </div>
+              <div className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(request.status)} flex items-center space-x-2 w-28 justify-center`}>
+                <span className={`w-2 h-2 rounded-full ${getDotColor(request.status)}`}></span>
+                <span>{capitalizeFirstLetter(request.status)}</span>
+              </div>
+            </div>
+          </Card>
         ))}
       </div>
     </ScrollArea>
   );
 };
-
 const Header: React.FC<{ activeTab: string, setActiveTab: (tab: string) => void, openModal: () => void }> = ({ activeTab, setActiveTab, openModal}) => (
   <header className="bg-gray-50 border border-gray-200 p-3 flex justify-between items-center">
     <div className="flex items-center space-x-4">
