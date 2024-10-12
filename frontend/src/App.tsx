@@ -37,6 +37,19 @@ const Modal = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => 
   );
 };
 
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'pending':
+      return 'bg-yellow-200 text-yellow-800';
+    case 'approved':
+      return 'bg-green-200 text-green-800';
+    case 'denied':
+      return 'bg-red-200 text-red-800';
+    default:
+      return 'bg-gray-200 text-gray-800';
+  }
+};
+
 const AICommandInput: React.FC<{onSuccess: () => void}> = ({ onSuccess }) => {
   const [command, setCommand] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -94,16 +107,22 @@ const ActiveRequests: React.FC = () => {
     <ScrollArea className="h-max">
       <div className="space-y-4">
         {requests.map((request) => (
-          <Card key={request.id}>
-            <CardHeader>
-              <CardTitle>{request.patient}</CardTitle>
-              <CardDescription>{request.service}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-black">Status: {request.status}</p>
-              <p className="text-black">Date: {request.date}</p>
-            </CardContent>
-          </Card>
+         <Card key={request.id}>
+         <div className="flex justify-between items-center">
+           <div>
+             <CardHeader>
+               <CardTitle>{request.patient}</CardTitle>
+               <CardDescription>{request.service}</CardDescription>
+             </CardHeader>
+             <CardContent>
+               <p className="text-black">Date: {request.date}</p>
+             </CardContent>
+           </div>
+           <div className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(request.status)}`}>
+             {request.status}
+           </div>
+         </div>
+       </Card>
         ))}
       </div>
     </ScrollArea>
