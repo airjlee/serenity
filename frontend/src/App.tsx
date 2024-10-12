@@ -485,7 +485,7 @@ const PriorAuthRequestApp: React.FC = () => {
 
   const handleSuccessfulGeneration = () => {
     closeModal();
-    setActiveTab('active-requests');
+    setActiveTab('new-request');
   };
 
   const handleBackToRequests = () => {
