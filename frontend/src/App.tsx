@@ -83,7 +83,7 @@ const AICommandInput: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
 
       const data = await response.json();
       // Assuming the API returns a field called 'message' with the result
-      setResult(data.message || 'Request generated successfully.');
+      setResult(data.content || 'Request generated successfully.');
       
       // Optionally, trigger success callback after a short delay
       setTimeout(() => {
@@ -264,7 +264,204 @@ const Header: React.FC<{ activeTab: string, setActiveTab: (tab: string) => void,
   </header>
 );
 
+const PriorAuthForm = () => {
+  const [formData, setFormData] = useState({
+    // Patient Information
+    patientName: '',
+    patientDOB: '',
+    patientGender: '',
+    patientAddress: '',
+    patientCity: '',
+    patientState: '',
+    patientZip: '',
+    patientPhone: '',
+    patientEmail: '',
+    patientInsuranceId: '',
+    
+    // Provider Information
+    referringProviderName: '',
+    referringProviderNPI: '',
+    referringProviderRelationship: '',
+    servicingProviderName: '',
+    servicingProviderNPI: '',
+    
+    // Clinical Information
+    serviceType: '',
+    serviceStartDate: '',
+    cptCodes: '',
+    icdCodes: '',
+    
+    // Rationale for Treatment
+    summaryMedicalNeed: '',
+    reasonsRequestedMedication: '',
+    
+    // Patient Diagnosis
+    diagnosisICD10: '',
+    diagnosisDate: '',
+    
+    // Patient Medical Records
+    diagnosticTestResults: '',
+    imagingResults: '',
+    
+    // Patient History
+    previousTreatments: '',
+    treatmentResponse: '',
+    recentSymptoms: '',
+    currentCondition: '',
+    
+    // Physician Opinion
+    physicianPrognosis: '',
+    diseaseProgression: '',
+  });
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prevState => ({
+      ...prevState,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log('Form submitted:', formData);
+    // Add logic here to handle form submission
+  };
+
+  return (
+    <Card >
+
+        
+
+      <CardHeader>
+        <CardTitle>Comprehensive Prior Authorization Request Form</CardTitle>
+        <CardDescription>Please fill out all fields to submit a detailed prior authorization request.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Patient Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="patientName" className="block text-sm font-medium mb-1">Patient Name</label>
+                <Input name="patientName" value={formData.patientName} onChange={handleInputChange} required />
+              </div>
+              <div>
+                <label htmlFor="patientDOB" className="block text-sm font-medium mb-1">Date of Birth</label>
+                <Input name="patientDOB" type="date" value={formData.patientDOB} onChange={handleInputChange} required />
+              </div>
+              <div>
+                <label htmlFor="patientGender" className="block text-sm font-medium mb-1">Gender</label>
+                <Input name="patientGender" value={formData.patientGender} onChange={handleInputChange} required />
+              </div>
+              <div>
+                <label htmlFor="patientAddress" className="block text-sm font-medium mb-1">Address</label>
+                <Input name="patientAddress" value={formData.patientAddress} onChange={handleInputChange} required />
+              </div>
+              <div>
+                <label htmlFor="patientInsuranceId" className="block text-sm font-medium mb-1">Health Insurance ID Number</label>
+                <Input name="patientInsuranceId" value={formData.patientInsuranceId} onChange={handleInputChange} required />
+              </div>
+              <div>
+                <label htmlFor="patientPhone" className="block text-sm font-medium mb-1">Phone</label>
+                <Input name="patientPhone" value={formData.patientPhone} onChange={handleInputChange} required />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Provider Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="referringProviderName" className="block text-sm font-medium mb-1">Referring Provider Name</label>
+                <Input name="referringProviderName" value={formData.referringProviderName} onChange={handleInputChange} required />
+              </div>
+              <div>
+                <label htmlFor="referringProviderNPI" className="block text-sm font-medium mb-1">Referring Provider NPI</label>
+                <Input name="referringProviderNPI" value={formData.referringProviderNPI} onChange={handleInputChange} required />
+              </div>
+              <div>
+                <label htmlFor="referringProviderRelationship" className="block text-sm font-medium mb-1">Relationship to the Patient</label>
+                <Input name="referringProviderRelationship" value={formData.referringProviderRelationship} onChange={handleInputChange} required />
+              </div>
+              <div>
+                <label htmlFor="servicingProviderName" className="block text-sm font-medium mb-1">Servicing Provider Name</label>
+                <Input name="servicingProviderName" value={formData.servicingProviderName} onChange={handleInputChange} required />
+              </div>
+              <div>
+                <label htmlFor="servicingProviderNPI" className="block text-sm font-medium mb-1">Servicing Provider NPI</label>
+                <Input name="servicingProviderNPI" value={formData.servicingProviderNPI} onChange={handleInputChange} required />
+              </div>
+            </div>
+          </div>
+
+          {/* Continue with similar structure for other sections... */}
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Clinical Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="serviceType" className="block text-sm font-medium mb-1">Type of Service Requested</label>
+                <Input name="serviceType" value={formData.serviceType} onChange={handleInputChange} required />
+              </div>
+              <div>
+                <label htmlFor="serviceStartDate" className="block text-sm font-medium mb-1">Service Start Date</label>
+                <Input name="serviceStartDate" type="date" value={formData.serviceStartDate} onChange={handleInputChange} required />
+              </div>
+              <div>
+                <label htmlFor="cptCodes" className="block text-sm font-medium mb-1">CPT Codes</label>
+                <Input name="cptCodes" value={formData.cptCodes} onChange={handleInputChange} required />
+              </div>
+              <div>
+                <label htmlFor="icdCodes" className="block text-sm font-medium mb-1">ICD Codes</label>
+                <Input name="icdCodes" value={formData.icdCodes} onChange={handleInputChange} required />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Rationale for Treatment</h3>
+            <div>
+              <label htmlFor="summaryMedicalNeed" className="block text-sm font-medium mb-1">Summary of Medical Need</label>
+              <textarea
+                name="summaryMedicalNeed"
+                value={formData.summaryMedicalNeed}
+                onChange={handleInputChange}
+                rows={4}
+                className="bg-blue-200 shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="reasonsRequestedMedication" className="block text-sm font-medium mb-1">Reasons for Requested Medication or Service</label>
+              <textarea
+                name="reasonsRequestedMedication"
+                value={formData.reasonsRequestedMedication}
+                onChange={handleInputChange}
+                rows={4}
+                className="bg-blue-200 shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Add remaining sections (Patient Diagnosis, Patient Medical Records, Patient History, Physician Opinion) following the same pattern */}
+
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Important</AlertTitle>
+            <AlertDescription>
+              Please ensure all information is accurate and complete before submission. Inaccurate or incomplete information may delay the authorization process.
+            </AlertDescription>
+          </Alert>
+
+          <Button type="submit" className="w-full">Submit Comprehensive Prior Authorization Request</Button>
+        </form>
+      </CardContent>
+
+    </Card>
+  );
+};
 const PriorAuthRequestApp: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -281,8 +478,8 @@ const PriorAuthRequestApp: React.FC = () => {
     switch (activeTab) {
       case 'dashboard':
         return <div className="text-black">Dashboard content goes here</div>;
-      // case 'new-request':
-      //   return <AICommandInput />;
+      case 'new-request':
+        return <PriorAuthForm />;
       case 'active-requests':
         return <ActiveRequests />;
       case 'settings':
