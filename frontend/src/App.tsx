@@ -51,7 +51,8 @@ const getStatusColor = (status: string) => {
 };
 
 const AICommandInput: React.FC<{onSuccess: () => void}> = ({ onSuccess }) => {
-  const [command, setCommand] = useState('');
+  const [patientInfo, setPatientInfo] = useState('');
+  const [procedure, setProcedure] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<string | null>(null);
 
@@ -62,26 +63,37 @@ const AICommandInput: React.FC<{onSuccess: () => void}> = ({ onSuccess }) => {
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     setIsProcessing(false);
-    setResult('Prior authorization request for PET/CT skull thigh for Jane Doe has been generated and submitted.');
+    setResult(`Prior authorization request for ${procedure} for ${patientInfo} has been generated and submitted.`);
     setTimeout(() => {
       onSuccess();
     }, 2000);
   };
 
-  
-
   return (
-    <div className="space-y-4 ">
-
-      <form onSubmit={handleSubmit} className="flex space-x-2">
-        <Input
-          value={command}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setCommand(e.target.value)}
-          placeholder="/req [service] for [patient]"
-          className="flex-grow bg-gray-200 outline-none p-5 rounded-md"
-        />
-        <Button type="submit" className="bg-black" disabled={isProcessing}>
-          {isProcessing ? <Loader2 className="h-4 w-16 animate-spin" /> : 'Generate'}
+    <div className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="patientInfo" className="block text-sm font-medium text-gray-700">Patient Name or ID</label>
+          <Input
+            id="patientInfo"
+            value={patientInfo}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setPatientInfo(e.target.value)}
+            placeholder="Enter patient name or ID"
+            className="w-full p-4 bg-gray-200 text-black"
+          />
+        </div>
+        <div>
+          <label htmlFor="procedure" className="block text-sm font-medium text-gray-700">Procedure</label>
+          <Input
+            id="procedure"
+            value={procedure}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setProcedure(e.target.value)}
+            placeholder="Enter procedure"
+            className="w-full p-4 bg-gray-200 text-black"
+          />
+        </div>
+        <Button type="submit" className="w-full bg-gray-900 p-4 text-white" disabled={isProcessing}>
+          {isProcessing ? <Loader2 className="h-6 w-4 animate-spin mx-auto" /> : 'Generate'}
         </Button>
       </form>
       {result && (
@@ -94,6 +106,7 @@ const AICommandInput: React.FC<{onSuccess: () => void}> = ({ onSuccess }) => {
     </div>
   );
 };
+
 
 const ActiveRequests: React.FC = () => {
   const [requests] = useState<AuthRequest[]>([
