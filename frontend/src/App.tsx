@@ -74,12 +74,13 @@ const AICommandInput: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
 
       const data = await response.json();
       // Assuming the API returns a field called 'message' with the result
-      setResult(data.content || 'Request generated successfully.');
+      // setResult(data.content || 'Request generated successfully.');
       
       // Optionally, trigger success callback after a short delay
-      setTimeout(() => {
-        onSuccess();
-      }, 2000);
+      onSuccess()
+      // setTimeout(() => {
+      //   onSuccess();
+      // }, 2000);
     } catch (err: any) {
       // Handle network or parsing errors
       setError(err.message || 'An unexpected error occurred.');
