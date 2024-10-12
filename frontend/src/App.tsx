@@ -50,46 +50,80 @@ const getStatusColor = (status: string) => {
   }
 };
 
-const AICommandInput: React.FC<{onSuccess: () => void}> = ({ onSuccess }) => {
+const AICommandInput: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
   const [patientInfo, setPatientInfo] = useState('');
   const [procedure, setProcedure] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
     setResult(null);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setIsProcessing(false);
-    setResult(`Prior authorization request for ${procedure} for ${patientInfo} has been generated and submitted.`);
-    setTimeout(() => {
-      onSuccess();
-    }, 2000);
+    setError(null);
+
+    try {
+      const response = await fetch('http://localhost:8000/api/generate/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          patient_info: patientInfo,
+          procedure: procedure
+        })
+      });
+
+      if (!response.ok) {
+        // Handle HTTP errors
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to generate request.');
+      }
+
+      const data = await response.json();
+      // Assuming the API returns a field called 'message' with the result
+      setResult(data.message || 'Request generated successfully.');
+      
+      // Optionally, trigger success callback after a short delay
+      setTimeout(() => {
+        onSuccess();
+      }, 2000);
+    } catch (err: any) {
+      // Handle network or parsing errors
+      setError(err.message || 'An unexpected error occurred.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
     <div className="space-y-4">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="patientInfo" className="block text-sm font-medium text-gray-700">Patient Name or ID</label>
+          <label htmlFor="patientInfo" className="block text-sm font-medium text-gray-700">
+            Patient Name or ID
+          </label>
           <Input
             id="patientInfo"
             value={patientInfo}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setPatientInfo(e.target.value)}
             placeholder="Enter patient name or ID"
             className="w-full p-4 bg-gray-200 outline-none text-black"
+            required
           />
         </div>
         <div>
-          <label htmlFor="procedure" className="block text-sm  font-medium text-gray-700">Procedure</label>
+          <label htmlFor="procedure" className="block text-sm font-medium text-gray-700">
+            Procedure
+          </label>
           <Input
             id="procedure"
             value={procedure}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setProcedure(e.target.value)}
             placeholder="Enter procedure"
             className="w-full p-4 bg-gray-200 outline-none text-black"
+            required
           />
         </div>
         <Button type="submit" className="w-full bg-gray-900 p-4 text-white" disabled={isProcessing}>
@@ -101,6 +135,13 @@ const AICommandInput: React.FC<{onSuccess: () => void}> = ({ onSuccess }) => {
           <Check className="h-4 w-4" />
           <AlertTitle>Success</AlertTitle>
           <AlertDescription>{result}</AlertDescription>
+        </Alert>
+      )}
+      {error && (
+        <Alert>
+          <X className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
     </div>
