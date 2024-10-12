@@ -79,17 +79,17 @@ const AICommandInput: React.FC<{onSuccess: () => void}> = ({ onSuccess }) => {
             value={patientInfo}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setPatientInfo(e.target.value)}
             placeholder="Enter patient name or ID"
-            className="w-full p-4 bg-gray-200 text-black"
+            className="w-full p-4 bg-gray-200 outline-none text-black"
           />
         </div>
         <div>
-          <label htmlFor="procedure" className="block text-sm font-medium text-gray-700">Procedure</label>
+          <label htmlFor="procedure" className="block text-sm  font-medium text-gray-700">Procedure</label>
           <Input
             id="procedure"
             value={procedure}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setProcedure(e.target.value)}
             placeholder="Enter procedure"
-            className="w-full p-4 bg-gray-200 text-black"
+            className="w-full p-4 bg-gray-200 outline-none text-black"
           />
         </div>
         <Button type="submit" className="w-full bg-gray-900 p-4 text-white" disabled={isProcessing}>
