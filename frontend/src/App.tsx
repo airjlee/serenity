@@ -1,13 +1,16 @@
 import React, { useState, ChangeEvent } from 'react';
-import { AlertCircle, Check, Loader2, FileText, Settings, List, Home, Bell, Search, User, X, Command, Icon } from 'lucide-react';
+import { AlertCircle, Check, Loader2, FileText, Settings, List, Home, Bell, Search, User, X, Command, ArrowLeft } from 'lucide-react';
 import logo from './serenity-logo.png';
 
 const Alert = ({ children }: { children: React.ReactNode }) => <div className="bg-gray-700 border-l-4 border-blue-500 text-blue-300 p-4" role="alert">{children}</div>;
 const AlertTitle = ({ children }: { children: React.ReactNode }) => <p className="font-bold">{children}</p>;
 const AlertDescription = ({ children }: { children: React.ReactNode }) => <p>{children}</p>;
 const Button = ({ children, variant, size, className, ...props }: any) => <button className={`px-4 py-2 bg-blue-200 text-black rounded ${className}`} {...props}>{children}</button>;
-const Card = ({ children }: { children: React.ReactNode }) => <div className="bg-gray-100 shadow-md rounded px-8 pt-6 pb-8 mb-4">{children}</div>;
-const CardHeader = ({ children }: { children: React.ReactNode }) => <div className="mb-4">{children}</div>;
+const Card = ({ children, onClick, className }: { children: React.ReactNode; onClick?: () => void; className?: string }) => (
+  <div className={`bg-gray-100 shadow-md rounded px-8 pt-6 pb-8 mb-4 ${className || ''}`} onClick={onClick}>
+    {children}
+  </div>
+);const CardHeader = ({ children }: { children: React.ReactNode }) => <div className="mb-4">{children}</div>;
 const CardTitle = ({ children }: { children: React.ReactNode }) => <h2 className="text-xl font-bold text-black">{children}</h2>;
 const CardDescription = ({ children }: { children: React.ReactNode }) => <p className="text-gray-400">{children}</p>;
 const CardContent = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
@@ -20,6 +23,7 @@ interface AuthRequest {
   service: string;
   status: 'pending' | 'approved' | 'denied';
   date: string;
+  details?: string;
 }
 
 const Modal = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => void; children: React.ReactNode }) => {
@@ -35,19 +39,6 @@ const Modal = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => 
       </div>
     </div>
   );
-};
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'pending':
-      return 'bg-yellow-200 text-yellow-800';
-    case 'approved':
-      return 'bg-green-200 text-green-800';
-    case 'denied':
-      return 'bg-red-200 text-red-800';
-    default:
-      return 'bg-gray-200 text-gray-800';
-  }
 };
 
 const AICommandInput: React.FC<{onSuccess: () => void}> = ({ onSuccess }) => {
@@ -107,50 +98,66 @@ const AICommandInput: React.FC<{onSuccess: () => void}> = ({ onSuccess }) => {
   );
 };
 
+const RequestDetails: React.FC<{ request: AuthRequest; onBack: () => void }> = ({ request, onBack }) => {
+  return (
+    <div>
+      <Button onClick={onBack} className="mb-4 flex items-center">
+        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Requests
+      </Button>
+      <Card>
+        <CardHeader>
+          <CardTitle>{request.patient}</CardTitle>
+          <CardDescription>{request.service}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-black mb-2">Date: {request.date}</p>
+          <p className="text-black mb-2">
+            Status: <span className={`px-2 py-1 rounded ${getStatusColor(request.status)}`}>{capitalizeFirstLetter(request.status)}</span>
+          </p>
+          <p className="text-black mb-2">Details: {request.details || 'No additional details available.'}</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
 
-const ActiveRequests: React.FC = () => {
-  const [requests] = useState<AuthRequest[]>([
-    { id: '1', patient: 'Jane Doe', service: 'PET/CT skull thigh', status: 'pending', date: '2024-10-11' },
-    { id: '2', patient: 'John Smith', service: 'MRI lower back', status: 'approved', date: '2024-10-10' },
-    { id: '3', patient: 'Alice Johnson', service: 'Chest X-ray', status: 'denied', date: '2024-10-09' },
-    { id: '4', patient: 'Bob Williams', service: 'Ultrasound abdomen', status: 'pending', date: '2024-10-08' }
-  ]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-200 text-yellow-800';
-      case 'approved':
-        return 'bg-green-200 text-green-800';
-      case 'denied':
-        return 'bg-red-200 text-red-800';
-      default:
-        return 'bg-gray-200 text-gray-800';
-    }
-  };
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'pending':
+      return 'bg-yellow-200 text-yellow-800';
+    case 'approved':
+      return 'bg-green-200 text-green-800';
+    case 'denied':
+      return 'bg-red-200 text-red-800';
+    default:
+      return 'bg-gray-200 text-gray-800';
+  }
+};
 
-  const getDotColor = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-500';
-      case 'approved':
-        return 'bg-green-500';
-      case 'denied':
-        return 'bg-red-500';
-      default:
-        return 'bg-gray-500';
-    }
-  };
+const getDotColor = (status: string) => {
+  switch (status) {
+    case 'pending':
+      return 'bg-yellow-500';
+    case 'approved':
+      return 'bg-green-500';
+    case 'denied':
+      return 'bg-red-500';
+    default:
+      return 'bg-gray-500';
+  }
+};
 
-  const capitalizeFirstLetter = (string: string) => {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-  };
+const capitalizeFirstLetter = (string: string) => {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+};
 
+const ActiveRequests: React.FC<{ requests: AuthRequest[], onSelectRequest: (id: string) => void }> = ({ requests, onSelectRequest }) => {
   return (
     <ScrollArea className="h-max">
       <div className="space-y-4">
         {requests.map((request) => (
-          <Card key={request.id}>
+          <Card key={request.id} onClick={() => onSelectRequest(request.id)} className="cursor-pointer hover:shadow-lg transition-shadow">
             <div className="flex justify-between items-center">
               <div>
                 <CardHeader>
@@ -227,30 +234,51 @@ const Header: React.FC<{ activeTab: string, setActiveTab: (tab: string) => void,
 const PriorAuthRequestApp: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [requests] = useState<AuthRequest[]>([
+    { id: '1', patient: 'Jane Doe', service: 'PET/CT skull thigh', status: 'pending', date: '2024-10-11', details: 'Awaiting insurance approval.' },
+    { id: '2', patient: 'John Smith', service: 'MRI lower back', status: 'approved', date: '2024-10-10', details: 'Approved for next week.' },
+    { id: '3', patient: 'Alice Johnson', service: 'Chest X-ray', status: 'denied', date: '2024-10-09', details: 'Insufficient medical necessity demonstrated.' },
+    { id: '4', patient: 'Bob Williams', service: 'Ultrasound abdomen', status: 'pending', date: '2024-10-08', details: 'Additional information requested from referring physician.' }
+  ]);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
   const handleSuccessfulGeneration = () => {
     closeModal();
-    setActiveTab('new-request');
+    setActiveTab('active-requests');
+  };
+
+  const handleBackToRequests = () => {
+    setSelectedRequestId(null);
+    setActiveTab('active-requests');
+  };
+
+  const handleSelectRequest = (id: string) => {
+    setSelectedRequestId(id);
+    setActiveTab('request-details');
   };
 
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
         return <div className="text-black">Dashboard content goes here</div>;
-      // case 'new-request':
-      //   return <AICommandInput />;
       case 'active-requests':
-        return <ActiveRequests />;
+        return <ActiveRequests requests={requests} onSelectRequest={handleSelectRequest} />;
+      case 'request-details':
+        const selectedRequest = requests.find((request) => request.id === selectedRequestId);
+        if (!selectedRequest) {
+          return <div className="text-black">Request not found.</div>;
+        }
+        return <RequestDetails request={selectedRequest} onBack={handleBackToRequests} />;
       case 'settings':
         return <div className="text-black">Settings content goes here</div>;
       default:
         return null;
     }
   };
-
+  
   return (
     <div className="flex h-screen bg-gray-50 text-black">
       <div className="flex-1 flex flex-col">
