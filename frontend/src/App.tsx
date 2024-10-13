@@ -1118,7 +1118,7 @@ const PriorAuthRequestApp: React.FC = () => {
   };
 
   const handleRequestUpdate = (id: string) => {
-    setAlertMessage('Update requested.');
+    setAlertMessage('Update request sent to insurance provider.');
     setShowAlert(true);
     // add insurance company bump logic
   };
