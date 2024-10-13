@@ -242,7 +242,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, onBack, onUpda
   };
 
   return (
-    <div>
+    <div className="relative">
       <div className="flex justify-between items-center mb-4">
         <Button onClick={onBack} className="flex items-center">
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Requests
@@ -252,21 +252,26 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, onBack, onUpda
         )}
       </div>
       <Card>
-        <CardHeader>
-          <CardTitle>{formData.patientName}</CardTitle>
-          <CardDescription>{formData.service}</CardDescription>
-        </CardHeader>
+        <div className="flex flex-row items-center justify-between">
+          <CardHeader>
+            <div>
+              <CardTitle>{formData.patientName}</CardTitle>
+              <CardDescription>{formData.service}</CardDescription>
+            </div>
+          </CardHeader>
+          <div
+            className={`px-4 py-2 rounded-full text-base font-semibold ${getStatusColor(request.status)} flex items-center space-x-2 w-32 justify-center mr-4`} 
+            style={{ minWidth: '8rem', minHeight: '2.5rem' }} // Ensures a larger button size
+          >
+            <span className={`w-3 h-3 rounded-full ${getDotColor(request.status)}`}></span>
+            <span>{capitalizeFirstLetter(request.status)}</span>
+          </div>
+        </div>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Request Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Status</label>
-                  <div className={`px-2 py-1 rounded ${getStatusColor(formData.status)}`}>
-                    {capitalizeFirstLetter(formData.status)}
-                  </div>
-                </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Date</label>
                   <Input
@@ -368,6 +373,17 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, onBack, onUpda
                   rows={4}
                   className="bg-white shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline"
                   disabled={!editMode}
+                />
+              </div>
+              <div>
+                <label htmlFor="reasonsRequestedMedication" className="block text-sm font-medium mb-1">Reasons for Requested Medication or Service</label>
+                <textarea
+                  name="reasonsRequestedMedication"
+                  value={formData.reasonsRequestedMedication}
+                  onChange={handleInputChange}
+                  rows={4}
+                  className="bg-white shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline"
+                  required
                 />
               </div>
               {/* Add other rationale fields here */}
