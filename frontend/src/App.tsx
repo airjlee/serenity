@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AlertCircle, Check, Loader2, FileText, Settings, List, Home, Bell, Search, User, X, Command, ArrowLeft, Save } from 'lucide-react';
 import logo from './serenity-logo.png';
 
@@ -24,7 +24,6 @@ interface AuthRequest {
   status: 'pending' | 'approved' | 'denied';
   date: string;
   details?: string;
-  // Add all other fields from PriorAuthForm
   patientName: string;
   patientDOB: string;
   patientGender: string;
@@ -70,12 +69,37 @@ const Modal = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => 
   );
 };
 
-const AICommandInput: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
+interface AICommandInputProps {
+  onSuccess: () => void;
+  requests: AuthRequest[];
+}
+
+const AICommandInput: React.FC<AICommandInputProps> = ({ onSuccess, requests }) => {
   const [patientInfo, setPatientInfo] = useState('');
   const [procedure, setProcedure] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [filteredRequests, setFilteredRequests] = useState<AuthRequest[]>([]);
+  const [selectedRequest, setSelectedRequest] = useState<AuthRequest | null>(null);
+
+  useEffect(() => {
+    if (patientInfo.length > 2) {
+      const filtered = requests.filter(request =>
+        request.patientName.toLowerCase().includes(patientInfo.toLowerCase()) ||
+        request.patientInsuranceId.includes(patientInfo)
+      );
+      setFilteredRequests(filtered);
+    } else {
+      setFilteredRequests([]);
+    }
+  }, [patientInfo, requests]);
+
+  const handlePatientSelect = (request: AuthRequest) => {
+    setSelectedRequest(request);
+    setPatientInfo(`${request.patientName} (${request.patientInsuranceId})`);
+    setFilteredRequests([]);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,28 +114,20 @@ const AICommandInput: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          patient_info: patientInfo,
+          patient_info: selectedRequest || patientInfo,
           procedure: procedure
         })
       });
 
       if (!response.ok) {
-        // Handle HTTP errors
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to generate request.');
       }
 
       const data = await response.json();
-      // Assuming the API returns a field called 'message' with the result
-      // setResult(data.content || 'Request generated successfully.');
-      
-      // Optionally, trigger success callback after a short delay
-      onSuccess()
-      // setTimeout(() => {
-      //   onSuccess();
-      // }, 2000);
+      setResult('Request generated successfully.');
+      onSuccess();
     } catch (err: any) {
-      // Handle network or parsing errors
       setError(err.message || 'An unexpected error occurred.');
     } finally {
       setIsProcessing(false);
@@ -125,14 +141,29 @@ const AICommandInput: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
           <label htmlFor="patientInfo" className="block text-sm font-medium text-gray-700">
             Patient Name or ID
           </label>
-          <Input
-            id="patientInfo"
-            value={patientInfo}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setPatientInfo(e.target.value)}
-            placeholder="Enter patient name or ID"
-            className="w-full p-4 bg-gray-200 outline-none text-black"
-            required
-          />
+          <div className="relative">
+            <Input
+              id="patientInfo"
+              value={patientInfo}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPatientInfo(e.target.value)}
+              placeholder="Enter patient name or ID"
+              className="w-full p-4 bg-gray-200 outline-none text-black"
+              required
+            />
+            {filteredRequests.length > 0 && (
+              <ul className="absolute z-10 w-full bg-white border border-gray-300 mt-1 max-h-60 overflow-auto rounded-md shadow-lg">
+                {filteredRequests.map((request) => (
+                  <li
+                    key={request.id}
+                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => handlePatientSelect(request)}
+                  >
+                    {request.patientName} ({request.patientInsuranceId})
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
         <div>
           <label htmlFor="procedure" className="block text-sm font-medium text-gray-700">
@@ -141,7 +172,7 @@ const AICommandInput: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
           <Input
             id="procedure"
             value={procedure}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setProcedure(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProcedure(e.target.value)}
             placeholder="Enter procedure"
             className="w-full p-4 bg-gray-200 outline-none text-black"
             required
@@ -511,19 +542,22 @@ const PriorAuthForm = () => {
     diseaseProgression: '',
   });
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData(prevState => ({
       ...prevState,
       [name]: value
     }));
   };
-
-  const handleSubmit = (e) => {
+  
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log('Form submitted:', formData);
     // Add logic here to handle form submission
   };
+  
 
   return (
     <Card >
@@ -815,7 +849,7 @@ const PriorAuthRequestApp: React.FC = () => {
         return null;
     }
   };
-  
+
   return (
     <div className="flex h-screen bg-gray-50 text-black">
       <div className="flex-1 flex flex-col">
@@ -829,7 +863,7 @@ const PriorAuthRequestApp: React.FC = () => {
       </div>
       <Modal isOpen={isModalOpen} onClose={closeModal}>
         <h2 className="text-2xl font-semibold text-black mb-4">New Request</h2>
-        <AICommandInput onSuccess={handleSuccessfulGeneration} />
+        <AICommandInput onSuccess={handleSuccessfulGeneration} requests={requests} />
       </Modal>
     </div>
   );
