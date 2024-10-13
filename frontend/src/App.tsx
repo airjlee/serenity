@@ -1,5 +1,5 @@
 import React, { useState, ChangeEvent } from 'react';
-import { AlertCircle, Check, Loader2, FileText, Settings, List, Home, Bell, Search, User, X, Command, ArrowLeft } from 'lucide-react';
+import { AlertCircle, Check, Loader2, FileText, Settings, List, Home, Bell, Search, User, X, Command, ArrowLeft, Save } from 'lucide-react';
 import logo from './serenity-logo.png';
 
 const Alert = ({ children }: { children: React.ReactNode }) => <div className="bg-gray-700 border-l-4 border-blue-500 text-blue-300 p-4" role="alert">{children}</div>;
@@ -24,6 +24,35 @@ interface AuthRequest {
   status: 'pending' | 'approved' | 'denied';
   date: string;
   details?: string;
+  // Add all other fields from PriorAuthForm
+  patientName: string;
+  patientDOB: string;
+  patientGender: string;
+  patientAddress: string;
+  patientCity: string;
+  patientState: string;
+  patientZip: string;
+  patientPhone: string;
+  patientEmail: string;
+  patientInsuranceId: string;
+  patientInsuranceName: string;
+  referringProviderName: string;
+  referringProviderNPI: string;
+  referringProviderRelationship: string;
+  servicingProviderName: string;
+  servicingProviderNPI: string;
+  serviceType: string;
+  serviceStartDate: string;
+  cptCodes: string;
+  icdCodes: string;
+  summaryMedicalNeed: string;
+  reasonsRequestedMedication: string;
+}
+
+interface RequestDetailsProps {
+  request: AuthRequest;
+  onBack: () => void;
+  onUpdate: (updatedRequest: AuthRequest) => void;
 }
 
 const Modal = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => void; children: React.ReactNode }) => {
@@ -140,29 +169,189 @@ const AICommandInput: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
   );
 };
 
-const RequestDetails: React.FC<{ request: AuthRequest; onBack: () => void }> = ({ request, onBack }) => {
+const RequestDetails: React.FC<RequestDetailsProps> = ({ request, onBack, onUpdate }) => {
+  const [editMode, setEditMode] = useState(false);
+  const [formData, setFormData] = useState<AuthRequest>(request);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prevState => ({
+      ...prevState,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onUpdate(formData);
+    setEditMode(false);
+  };
+
+  const handleCancel = () => {
+    setFormData(request);
+    setEditMode(false);
+  };
+
   return (
     <div>
-      <Button onClick={onBack} className="mb-4 flex items-center">
-        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Requests
-      </Button>
+      <div className="flex justify-between items-center mb-4">
+        <Button onClick={onBack} className="flex items-center">
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Requests
+        </Button>
+        {!editMode && (
+          <Button onClick={() => setEditMode(true)}>Edit Request</Button>
+        )}
+      </div>
       <Card>
         <CardHeader>
-          <CardTitle>{request.patient}</CardTitle>
-          <CardDescription>{request.service}</CardDescription>
+          <CardTitle>{formData.patientName}</CardTitle>
+          <CardDescription>{formData.service}</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-black mb-2">Date: {request.date}</p>
-          <p className="text-black mb-2">
-            Status: <span className={`px-2 py-1 rounded ${getStatusColor(request.status)}`}>{capitalizeFirstLetter(request.status)}</span>
-          </p>
-          <p className="text-black mb-2">Details: {request.details || 'No additional details available.'}</p>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Request Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Status</label>
+                  <div className={`px-2 py-1 rounded ${getStatusColor(formData.status)}`}>
+                    {capitalizeFirstLetter(formData.status)}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Date</label>
+                  <Input
+                    name="date"
+                    type="date"
+                    value={formData.date}
+                    onChange={handleInputChange}
+                    disabled={!editMode}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Patient Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Patient Name</label>
+                  <Input
+                    name="patientName"
+                    value={formData.patientName}
+                    onChange={handleInputChange}
+                    disabled={!editMode}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Date of Birth</label>
+                  <Input
+                    name="patientDOB"
+                    type="date"
+                    value={formData.patientDOB}
+                    onChange={handleInputChange}
+                    disabled={!editMode}
+                  />
+                </div>
+                {/* Add other patient information fields here */}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Provider Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Referring Provider Name</label>
+                  <Input
+                    name="referringProviderName"
+                    value={formData.referringProviderName}
+                    onChange={handleInputChange}
+                    disabled={!editMode}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Referring Provider NPI</label>
+                  <Input
+                    name="referringProviderNPI"
+                    value={formData.referringProviderNPI}
+                    onChange={handleInputChange}
+                    disabled={!editMode}
+                  />
+                </div>
+                {/* Add other provider information fields here */}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Clinical Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Service Type</label>
+                  <Input
+                    name="serviceType"
+                    value={formData.serviceType}
+                    onChange={handleInputChange}
+                    disabled={!editMode}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Service Start Date</label>
+                  <Input
+                    name="serviceStartDate"
+                    type="date"
+                    value={formData.serviceStartDate}
+                    onChange={handleInputChange}
+                    disabled={!editMode}
+                  />
+                </div>
+                {/* Add other clinical information fields here */}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Rationale for Treatment</h3>
+              <div>
+                <label className="block text-sm font-medium mb-1">Summary of Medical Need</label>
+                <textarea
+                  name="summaryMedicalNeed"
+                  value={formData.summaryMedicalNeed}
+                  onChange={handleInputChange}
+                  rows={4}
+                  className="bg-blue-200 shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline"
+                  disabled={!editMode}
+                />
+              </div>
+              {/* Add other rationale fields here */}
+            </div>
+
+            {/* Add remaining sections (Patient Diagnosis, Patient Medical Records, Patient History, Physician Opinion) following the same pattern */}
+
+            {editMode && (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Important</AlertTitle>
+                <AlertDescription>
+                  Please ensure all information is accurate and complete before saving. Inaccurate or incomplete information may delay the authorization process.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {editMode && (
+              <div className="flex justify-end space-x-4">
+                <Button type="button" onClick={handleCancel} variant="secondary">
+                  Cancel
+                </Button>
+                <Button type="submit" className="flex items-center">
+                  <Save className="mr-2 h-4 w-4" /> Save Changes
+                </Button>
+              </div>
+            )}
+          </form>
         </CardContent>
       </Card>
     </div>
   );
 };
-
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -338,11 +527,8 @@ const PriorAuthForm = () => {
 
   return (
     <Card >
-
-        
-
       <CardHeader>
-        <CardTitle>Comprehensive Prior Authorization Request Form</CardTitle>
+        <CardTitle>Prior Authorization Request Form</CardTitle>
         <CardDescription>Please fill out all fields to submit a detailed prior authorization request.</CardDescription>
       </CardHeader>
       <CardContent>
@@ -470,15 +656,111 @@ const PriorAuthForm = () => {
     </Card>
   );
 };
+
 const PriorAuthRequestApp: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
-  const [requests] = useState<AuthRequest[]>([
-    { id: '1', patient: 'Jane Doe', service: 'PET/CT skull thigh', status: 'pending', date: '2024-10-11', details: 'Awaiting insurance approval.' },
-    { id: '2', patient: 'John Smith', service: 'MRI lower back', status: 'approved', date: '2024-10-10', details: 'Approved for next week.' },
-    { id: '3', patient: 'Alice Johnson', service: 'Chest X-ray', status: 'denied', date: '2024-10-09', details: 'Insufficient medical necessity demonstrated.' },
-    { id: '4', patient: 'Bob Williams', service: 'Ultrasound abdomen', status: 'pending', date: '2024-10-08', details: 'Additional information requested from referring physician.' }
+  const [requests, setRequests] = useState<AuthRequest[]>([
+    {
+      id: "req1",
+      patient: "John Doe",
+      service: "MRI Scan",
+      status: "pending",
+      date: "2024-10-12",
+      details: "Patient requires MRI for persistent headaches.",
+      
+      patientName: "John Doe",
+      patientDOB: "1985-02-15",
+      patientGender: "Male",
+      patientAddress: "123 Elm St",
+      patientCity: "Springfield",
+      patientState: "IL",
+      patientZip: "62704",
+      patientPhone: "555-1234",
+      patientEmail: "johndoe@example.com",
+      patientInsuranceId: "A123456789",
+      patientInsuranceName: "HealthFirst",
+  
+      referringProviderName: "Dr. Jane Smith",
+      referringProviderNPI: "1234567890",
+      referringProviderRelationship: "Primary Care",
+      servicingProviderName: "Dr. Mark Johnson",
+      servicingProviderNPI: "0987654321",
+  
+      serviceType: "Diagnostic Imaging",
+      serviceStartDate: "2024-10-20",
+      cptCodes: "70551",
+      icdCodes: "R51",
+      summaryMedicalNeed: "MRI needed to assess potential neurological causes of chronic headaches.",
+      reasonsRequestedMedication: "None",
+    },
+    {
+      id: "req2",
+      patient: "Jane Doe",
+      service: "Physical Therapy",
+      status: "approved",
+      date: "2024-09-25",
+      details: "Patient recovering from knee surgery, requires PT sessions.",
+  
+      patientName: "Jane Doe",
+      patientDOB: "1990-08-12",
+      patientGender: "Female",
+      patientAddress: "456 Oak St",
+      patientCity: "Lincoln",
+      patientState: "NE",
+      patientZip: "68510",
+      patientPhone: "555-5678",
+      patientEmail: "janedoe@example.com",
+      patientInsuranceId: "B987654321",
+      patientInsuranceName: "WellCare",
+  
+      referringProviderName: "Dr. Emily White",
+      referringProviderNPI: "2345678901",
+      referringProviderRelationship: "Orthopedic Surgeon",
+      servicingProviderName: "Dr. Michael Green",
+      servicingProviderNPI: "1098765432",
+  
+      serviceType: "Physical Therapy",
+      serviceStartDate: "2024-10-01",
+      cptCodes: "97110",
+      icdCodes: "S83.511A",
+      summaryMedicalNeed: "Post-operative rehabilitation for right knee ACL reconstruction.",
+      reasonsRequestedMedication: "Pain management post-surgery.",
+    },
+    {
+      id: "req3",
+      patient: "Mike Brown",
+      service: "Chemotherapy",
+      status: "denied",
+      date: "2024-10-01",
+      details: "Request for chemotherapy treatment for lung cancer.",
+  
+      patientName: "Mike Brown",
+      patientDOB: "1975-04-05",
+      patientGender: "Male",
+      patientAddress: "789 Pine St",
+      patientCity: "Columbus",
+      patientState: "OH",
+      patientZip: "43210",
+      patientPhone: "555-9012",
+      patientEmail: "mikebrown@example.com",
+      patientInsuranceId: "C456789012",
+      patientInsuranceName: "Blue Cross",
+  
+      referringProviderName: "Dr. Lisa Black",
+      referringProviderNPI: "3456789012",
+      referringProviderRelationship: "Oncologist",
+      servicingProviderName: "Dr. George Harris",
+      servicingProviderNPI: "2109876543",
+  
+      serviceType: "Chemotherapy",
+      serviceStartDate: "2024-10-15",
+      cptCodes: "96413",
+      icdCodes: "C34.90",
+      summaryMedicalNeed: "Chemotherapy needed for stage II non-small cell lung cancer.",
+      reasonsRequestedMedication: "Treat and manage lung cancer progression.",
+    }
   ]);
 
   const openModal = () => setIsModalOpen(true);
@@ -499,6 +781,14 @@ const PriorAuthRequestApp: React.FC = () => {
     setActiveTab('request-details');
   };
 
+  const handleUpdateRequest = (updatedRequest: AuthRequest) => {
+    setRequests(prevRequests =>
+      prevRequests.map(req =>
+        req.id === updatedRequest.id ? updatedRequest : req
+      )
+    );
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
@@ -512,7 +802,13 @@ const PriorAuthRequestApp: React.FC = () => {
         if (!selectedRequest) {
           return <div className="text-black">Request not found.</div>;
         }
-        return <RequestDetails request={selectedRequest} onBack={handleBackToRequests} />;
+        return (
+          <RequestDetails
+            request={selectedRequest}
+            onBack={handleBackToRequests}
+            onUpdate={handleUpdateRequest}
+          />
+        );
       case 'settings':
         return <div className="text-black">Settings content goes here</div>;
       default:
