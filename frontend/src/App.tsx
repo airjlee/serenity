@@ -4,6 +4,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import logo from './serenity-logo.png';
 
 const Alert = ({ children }: { children: React.ReactNode }) => <div className="bg-red-200 border-l-4 border-red-500 text-black p-4" role="alert">{children}</div>;
+const AlertS = ({ children }: { children: React.ReactNode }) => <div className="bg-green-200 border-l-4 border-green-500 text-black p-4" role="alert">{children}</div>;
 const AlertTitle = ({ children }: { children: React.ReactNode }) => <p className="font-bold">{children}</p>;
 const AlertDescription = ({ children }: { children: React.ReactNode }) => <p>{children}</p>;
 const Button = ({ children, variant, size, className, ...props }: any) => <button className={`px-4 py-2 bg-blue-200 text-black rounded ${className}`} {...props}>{children}</button>;
@@ -365,7 +366,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, onBack, onUpda
                   value={formData.summaryMedicalNeed}
                   onChange={handleInputChange}
                   rows={4}
-                  className="bg-blue-200 shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline"
+                  className="bg-white shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline"
                   disabled={!editMode}
                 />
               </div>
@@ -579,28 +580,47 @@ const Dashboard = ({ requests }: { requests: Request[] }) => {
 const ActiveRequests: React.FC<{ requests: AuthRequest[], onSelectRequest: (id: string) => void }> = ({ requests, onSelectRequest }) => {
   return (
     <ScrollArea className="h-max">
-      <div className="space-y-4">
-      {requests.map((request: Request) => (
-          <Card key={request.id} onClick={() => onSelectRequest(request.id)} className="cursor-pointer hover:shadow-lg transition-shadow">
-            <div className="flex justify-between items-center">
-              <div>
-                <CardHeader>
-                  <CardTitle>{request.patient}</CardTitle>
-                  <CardDescription>{request.service}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-black">Date: {request.date}</p>
-                </CardContent>
-              </div>
-              <div className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(request.status)} flex items-center space-x-2 w-28 justify-center`}>
-                <span className={`w-2 h-2 rounded-full ${getDotColor(request.status)}`}></span>
-                <span>{capitalizeFirstLetter(request.status)}</span>
-              </div>
+    <div className="space-y-4">
+    {[...requests].reverse().map((request: Request) => (
+        <Card key={request.id} onClick={() => onSelectRequest(request.id)} className="cursor-pointer hover:shadow-lg transition-shadow">
+          <div className="flex justify-between items-center">
+            <div>
+              <CardHeader>
+                <CardTitle>{request.patient}</CardTitle>
+                <CardDescription>{request.service}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-black">Date: {request.date}</p>
+              </CardContent>
             </div>
-          </Card>
-        ))}
-      </div>
-    </ScrollArea>
+            <div className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(request.status)} flex items-center space-x-2 w-28 justify-center`}>
+              <span className={`w-2 h-2 rounded-full ${getDotColor(request.status)}`}></span>
+              <span>{capitalizeFirstLetter(request.status)}</span>
+            </div>
+          </div>
+        </Card>
+      ))}
+    </div>
+  </ScrollArea>
+  );
+};
+
+const SuccessAlert: React.FC<{ message: string; onClose: () => void }> = ({ message, onClose }) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose();
+    }, 2500);
+
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className="fixed bottom-4 right-4 w-72">
+      <AlertS >
+        <Check className="h-4 w-4" />
+        <AlertDescription>{message}</AlertDescription>
+      </AlertS >
+    </div>
   );
 };
 
@@ -656,12 +676,13 @@ const Header: React.FC<{ activeTab: string, setActiveTab: (tab: string) => void,
 
 interface PriorAuthFormProps {
   initialData?: any;
+  onSubmit: (newRequest: AuthRequest) => void;
 }
 
-const PriorAuthForm: React.FC<PriorAuthFormProps> = ({ initialData }) => {
+const PriorAuthForm: React.FC<PriorAuthFormProps> = ({ initialData, onSubmit }) => {
   const [formData, setFormData] = useState({
     // Patient Information
-    patientName: 'Bee',
+    patientName: '',
     patientDOB: '',
     patientGender: '',
     patientAddress: '',
@@ -669,6 +690,7 @@ const PriorAuthForm: React.FC<PriorAuthFormProps> = ({ initialData }) => {
     patientState: '',
     patientZip: '',
     patientEmail: '',
+    patientPhone: '',
     patientInsuranceId: '',
     patientInsuranceName:'',
 
@@ -689,23 +711,23 @@ const PriorAuthForm: React.FC<PriorAuthFormProps> = ({ initialData }) => {
     summaryMedicalNeed: '',
     reasonsRequestedMedication: '',
     
-    // Patient Diagnosis
-    diagnosisICD10: '',
-    diagnosisDate: '',
+    // // Patient Diagnosis
+    // diagnosisICD10: '',
+    // diagnosisDate: '',
     
-    // Patient Medical Records
-    diagnosticTestResults: '',
-    imagingResults: '',
+    // // Patient Medical Records
+    // diagnosticTestResults: '',
+    // imagingResults: '',
     
-    // Patient History
-    previousTreatments: '',
-    treatmentResponse: '',
-    recentSymptoms: '',
-    currentCondition: '',
+    // // Patient History
+    // previousTreatments: '',
+    // treatmentResponse: '',
+    // recentSymptoms: '',
+    // currentCondition: '',
     
-    // Physician Opinion
-    physicianPrognosis: '',
-    diseaseProgression: '',
+    // // Physician Opinion
+    // physicianPrognosis: '',
+    // diseaseProgression: '',
   });
 
   useEffect(() => {
@@ -735,7 +757,14 @@ const PriorAuthForm: React.FC<PriorAuthFormProps> = ({ initialData }) => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log('Form submitted:', formData);
-    // Add logic here to handle form submission
+    onSubmit({
+      id: `req${Date.now()}`, // Generate a unique ID
+      patient: formData.patientName,
+      service: formData.serviceType,
+      status: 'pending',
+      date: new Date().toISOString().split('T')[0],
+      ...formData
+    });
   };
   
 
@@ -886,6 +915,8 @@ const PriorAuthRequestApp: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const [formData, setFormData] = useState(null);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
   const [requests, setRequests] = useState<AuthRequest[]>([
     {
       id: "req1",
@@ -995,6 +1026,15 @@ const PriorAuthRequestApp: React.FC = () => {
     setFormData(data);
     closeModal();
     setActiveTab('new-request');
+    setAlertMessage('Prior auth form successfully generated!');
+    setShowAlert(true);
+  };
+
+  const handleNewRequestSubmit = (newRequest: AuthRequest) => {
+    setRequests(prevRequests => [...prevRequests, newRequest]);
+    setActiveTab('active-requests');
+    setAlertMessage('Request successfully submitted!');
+    setShowAlert(true);
   };
 
   const handleBackToRequests = () => {
@@ -1014,13 +1054,14 @@ const PriorAuthRequestApp: React.FC = () => {
       )
     );
   };
+  
 
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard requests={requests} />;
       case 'new-request':
-        return <PriorAuthForm initialData={formData}/>;
+        return <PriorAuthForm initialData={formData} onSubmit={handleNewRequestSubmit}/>;
       case 'active-requests':
         return <ActiveRequests requests={requests} onSelectRequest={handleSelectRequest} />;
       case 'request-details':
@@ -1057,6 +1098,12 @@ const PriorAuthRequestApp: React.FC = () => {
         <h2 className="text-2xl font-semibold text-black mb-4">New Request</h2>
         <AICommandInput onSuccess={handleSuccessfulGeneration} requests={requests} />
       </Modal>
+      {showAlert && (
+        <SuccessAlert
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
     </div>
   );
 };
