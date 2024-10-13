@@ -3,6 +3,7 @@ import { AlertCircle, Check, Loader2, FileText, Settings, List, Home, Bell, Sear
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import logo from './serenity-logo.png';
 import { patients, Patient } from './Patient';
+import { createInterface } from 'readline';
 
 const Alert = ({ children }: { children: React.ReactNode }) => <div className="bg-red-200 border-l-4 border-red-500 text-black p-4" role="alert">{children}</div>;
 const AlertS = ({ children }: { children: React.ReactNode }) => <div className="bg-green-200 border-l-4 border-green-500 text-black p-4" role="alert">{children}</div>;
@@ -63,6 +64,7 @@ interface DashboardProps {
   requests: Request[];
   onSelectRequest: (id: string) => void;
   onRequestUpdate: (id: string) => void;
+  setActiveTab: () => void;
 }
 
 interface RequestCardProps {
@@ -627,8 +629,11 @@ const RequestCard = ({ patient, service, date, status }: RequestCardProps) => (
   </Card>
 );
 
+interface LeftMenuProps{
+  setActiveTab: (string: string) => void;
+}
 
-const LeftMenu = () => (
+const LeftMenu: React.FC<LeftMenuProps> = ({ setActiveTab }) => (
   <div className="w-64 bg-[#f9fafb] p-2">
     <div className="space-y-6">
       <div>
@@ -678,8 +683,8 @@ const LeftMenu = () => (
       <div>
         <h2 className="text-lg font-semibold mb-2">Settings</h2>
         <ul className="space-y-2 text-sm">
-          {['User Preferences', 'Notification Settings', 'Account', 'Sign Out'].map((item) => (
-            <li key={item} className="hover:bg-gray-100 cursor-pointer">
+          {['User Preferences', 'EHR Settings', 'Account', 'Sign Out'].map((item) => (
+            <li key={item} className="hover:bg-gray-100 cursor-pointer" onClick={() => setActiveTab('user-preferences')}>
               {item}
             </li>
           ))}
@@ -690,7 +695,7 @@ const LeftMenu = () => (
 );
 
 
-const Dashboard = ({ requests, onSelectRequest, onRequestUpdate }: DashboardProps) => {
+const Dashboard = ({ requests, onSelectRequest, onRequestUpdate, setActiveTab }: DashboardProps) => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   const toggleDropdown = (id: string) => {
@@ -699,7 +704,7 @@ const Dashboard = ({ requests, onSelectRequest, onRequestUpdate }: DashboardProp
 
   return (
     <div className="flex">
-      <LeftMenu />
+      <LeftMenu setActiveTab={setActiveTab} />
       <div className="flex-1">
         <h1 className="text-2xl font-bold mb-6">Analytics</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -1146,6 +1151,144 @@ const PriorAuthForm: React.FC<PriorAuthFormProps> = ({ initialData, onSubmit }) 
   );
 };
 
+interface EHRConfigPageProps {
+  onBack: () => void;
+}
+const EHRConfigPage: React.FC<EHRConfigPageProps> = ({onBack}) => {
+  const [config, setConfig] = useState({
+    ehrSystem: 'Epic',
+    apiEndpoint: "https://api.epichealth.example.com/v1/fhir/Patient",
+    apiKey: "123e4567-e89b-12d3-a456-426614174000",
+    dataFormat: 'HL7',
+    autoSync: true,
+    syncInterval: '15',
+  });
+
+  const handleInputChange = (e:any) => {
+    const { name, value } = e.target;
+    setConfig((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (name:any, value:any) => {
+    setConfig((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSwitchChange = (name:any, checked:any) => {
+    setConfig((prev) => ({ ...prev, [name]: checked }));
+  };
+
+  const handleSubmit = (e:any) => {
+    e.preventDefault();
+    // Here you would typically save the configuration to your backend
+    console.log('Saving EHR configuration:', config);
+    // For demo purposes, we'll just show an alert
+    alert('EHR configuration saved successfully!');
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto">
+       <Button onClick={onBack} className="bg-gray-900 text-white flex items-center">
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back
+        </Button>
+      <Card>
+        <CardHeader>
+          <CardTitle>EHR Configuration</CardTitle>
+          <CardDescription>Configure your Electronic Health Record system integration settings.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="ehrSystem" className="block text-sm font-medium mb-1">EHR System</label>
+                <Input
+                  id="ehrSystem"
+                  name="ehrSystem"
+                  value={config.ehrSystem}
+                  onChange={handleInputChange}
+                  placeholder="e.g., Epic, Cerner, Allscripts"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="apiEndpoint" className="block text-sm font-medium mb-1">API Endpoint</label>
+                <Input
+                  id="apiEndpoint"
+                  name="apiEndpoint"
+                  value={config.apiEndpoint}
+                  onChange={handleInputChange}
+                  placeholder="https://api.ehrsystem.com/v1/"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="apiKey" className="block text-sm font-medium mb-1">API Key</label>
+                <Input
+                  id="apiKey"
+                  name="apiKey"
+                  type="password"
+                  value={config.apiKey}
+                  onChange={handleInputChange}
+                  placeholder="Enter your API key"
+                  required
+                />
+              </div>
+              {/* <div>
+                <label htmlFor="dataFormat" className="block text-sm font-medium mb-1">Data Format</label>
+                <Select name="dataFormat" value={config.dataFormat} onValueChange={(value) => handleSelectChange('dataFormat', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select data format" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="HL7">HL7</SelectItem>
+                    <SelectItem value="FHIR">FHIR</SelectItem>
+                    <SelectItem value="CDA">CDA</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center justify-between">
+                <label htmlFor="autoSync" className="text-sm font-medium">Auto-sync</label>
+                <Switch
+                  id="autoSync"
+                  name="autoSync"
+                  checked={config.autoSync}
+                  onCheckedChange={(checked) => handleSwitchChange('autoSync', checked)}
+                />
+              </div> */}
+              {config.autoSync && (
+                <div>
+                  <label htmlFor="syncInterval" className="block text-sm font-medium mb-1">Sync Interval (minutes)</label>
+                  <Input
+                    id="syncInterval"
+                    name="syncInterval"
+                    type="number"
+                    value={config.syncInterval}
+                    onChange={handleInputChange}
+                    min="5"
+                    max="60"
+                    required
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Important</AlertTitle>
+              <AlertDescription>
+                Ensure that your EHR system's API endpoint and key are correct. Incorrect configuration may result in sync failures or data discrepancies.
+              </AlertDescription>
+            </Alert> */}
+
+            <Button type="submit" className="w-full bg-gray-900 text-white">
+               Save Configuration
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
 const PriorAuthRequestApp: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -1289,6 +1432,11 @@ const PriorAuthRequestApp: React.FC = () => {
     setActiveTab('active-requests');
   };
 
+  const handleBackToDash = () => {
+    setSelectedRequestId(null);
+    setActiveTab('dashboard');
+  };
+
   const handleSelectRequest = (id: string) => {
     setSelectedRequestId(id);
     setActiveTab('request-details');
@@ -1301,6 +1449,10 @@ const PriorAuthRequestApp: React.FC = () => {
       )
     );
   };
+  
+  const handleEHRChange = () => {
+    setActiveTab('ehr-setting');
+  }
 
   const renderContent = () => {
     if (!isLoggedIn) {
@@ -1318,7 +1470,10 @@ const PriorAuthRequestApp: React.FC = () => {
         return <Dashboard
           requests={requests}
           onSelectRequest={handleSelectRequest}
-          onRequestUpdate={handleRequestUpdate}/>;
+          onRequestUpdate={handleRequestUpdate}
+          setActiveTab = {handleEHRChange}/>;
+      case 'ehr-setting':
+        return <EHRConfigPage onBack={handleBackToDash}/>;
       case 'new-request':
         return <PriorAuthForm initialData={formData} onSubmit={handleNewRequestSubmit}/>;
         case 'active-requests':
