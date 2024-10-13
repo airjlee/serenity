@@ -80,11 +80,28 @@ def generate_content(patient_info, procedure):
         body=request
     )
 
-
-
     # Extract the result
     result = json.loads(response["body"].read())
-    return result
+
+    content_list = result.get('content', [])
+    if not content_list:
+        return {'error': 'No content found in response'}
+
+    assistant_reply_text = content_list[0].get('text', '')
+
+    try:
+        assistant_reply_json = json.loads(assistant_reply_text)
+    except json.JSONDecodeError:
+        # Handle parsing error
+        assistant_reply_json = {
+            'error': 'Assistant reply is not valid JSON',
+            'raw_reply': assistant_reply_text
+        }
+
+    return assistant_reply_json
+
+    # result = json.loads(response['Body'].read().decode('utf-8'))
+    # return jsonify(result)
 
 
 # # Load environment variables from .env file
