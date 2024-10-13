@@ -6,6 +6,49 @@ import json
 
 # Initialize the Bedrock client
 client = boto3.client('bedrock-runtime')
+# def retrieve_and_generate_content(prompt):
+#     response = client.retrieve_and_generate(
+#         input={
+#             'text': prompt,
+#             'knowledgeBaseConfiguration': {
+#                 'knowledgeBaseId': 'your-knowledge-base-id',  # Replace with your Knowledge Base ID
+#                 'modelArn': 'your-model-arn',  # Replace with your Model ARN
+#                 'generationConfiguration': {
+#                     'promptTemplate': {
+#                         'textPromptTemplate': '{input}'
+#                     },
+#                     'inferenceConfig': {
+#                         'textInferenceConfig': {
+#                             'maxTokens': 1000,
+#                             'temperature': 0.5,
+#                             'topP': 0.9,
+#                             'stopSequences': []
+#                         }
+#                     }
+#                 },
+#                 'retrievalConfiguration': {
+#                     'vectorSearchConfiguration': {
+#                         'numberOfResults': 5,
+#                         'overrideSearchType': 'HYBRID'
+#                     }
+#                 }
+#             },
+#             'type': 'KNOWLEDGE_BASE'
+#         },
+#         sessionConfiguration={
+#             'kmsKeyArn': 'your-kms-key-arn'  # Optional: if you have a specific KMS key
+#         },
+#         sessionId=str(uuid.uuid4())
+#     )
+#
+#     # Extract the result
+#     result = json.loads(response['body'].read())
+#
+#     # Process the result to get the generated text
+#     generated_text = result.get('results', [{}])[0].get('output', {}).get('text', '')
+#
+#     return generated_text
+
 
 
 # Function to call the Sonnet 3.5 model through Bedrock
