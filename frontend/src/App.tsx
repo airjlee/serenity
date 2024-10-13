@@ -139,7 +139,7 @@ const LoginPage = ({ onLogin }: { onLogin: () => void }) => {
 
           <button
             type="submit"
-            className="w-full bg-indigo-600 text-white py-3 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+            className="w-full bg-blue-500 text-white py-3 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
           >
             Log in
           </button>
@@ -706,7 +706,7 @@ const Dashboard = ({ requests, onSelectRequest, onRequestUpdate, setActiveTab }:
     <div className="flex">
       <LeftMenu setActiveTab={setActiveTab} />
       <div className="flex-1">
-        <h1 className="text-2xl font-bold mb-6">Analytics</h1>
+        <h1 className="text-2xl font-bold mb-6 ">Analytics</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <ChartCard title="Average Prior Auth Approval Time" data={mockApprovalData} />
           <ChartCard title="Average Prior Auth Submission Time" data={mockSubmissionData} />
@@ -1300,8 +1300,8 @@ const PriorAuthRequestApp: React.FC = () => {
   const [requests, setRequests] = useState<AuthRequest[]>([
     {
       id: "req1",
-      patient: "John Doe",
-      service: "MRI Scan",
+      patient: "Michael Penix Jr.",
+      service: "Laparoscopic Cholecystectomy",
       status: "pending",
       date: "2024-10-12",
       details: "Patient requires MRI for persistent headaches.",
@@ -1333,9 +1333,9 @@ const PriorAuthRequestApp: React.FC = () => {
     },
     {
       id: "req2",
-      patient: "Jane Doe",
-      service: "Physical Therapy",
-      status: "approved",
+      patient: "Ronald Luong",
+      service: "Specialty Medications",
+      status: "denied",
       date: "2024-09-25",
       details: "Patient recovering from knee surgery, requires PT sessions.",
   
@@ -1366,9 +1366,42 @@ const PriorAuthRequestApp: React.FC = () => {
     },
     {
       id: "req3",
-      patient: "Mike Brown",
-      service: "Chemotherapy",
-      status: "denied",
+      patient: "Chloe Lee",
+      service: "Spinal Fusion Surgery",
+      status: "approved",
+      date: "2024-10-01",
+      details: "Request for chemotherapy treatment for lung cancer.",
+  
+      patientName: "Mike Brown",
+      patientDOB: "1975-04-05",
+      patientGender: "Male",
+      patientAddress: "789 Pine St",
+      patientCity: "Columbus",
+      patientState: "OH",
+      patientZip: "43210",
+      patientPhone: "555-9012",
+      patientEmail: "mikebrown@example.com",
+      patientInsuranceId: "C456789012",
+      patientInsuranceName: "Blue Cross",
+  
+      referringProviderName: "Dr. Lisa Black",
+      referringProviderNPI: "3456789012",
+      referringProviderRelationship: "Oncologist",
+      servicingProviderName: "Dr. George Harris",
+      servicingProviderNPI: "2109876543",
+  
+      serviceType: "Chemotherapy",
+      serviceStartDate: "2024-10-15",
+      cptCodes: "96413",
+      icdCodes: "C34.90",
+      summaryMedicalNeed: "Chemotherapy needed for stage II non-small cell lung cancer.",
+      reasonsRequestedMedication: "Treat and manage lung cancer progression.",
+    },
+    {
+      id: "req3",
+      patient: "Daniel Le",
+      service: "Computed Tomography (CT) Angiography",
+      status: "pending",
       date: "2024-10-01",
       details: "Request for chemotherapy treatment for lung cancer.",
   
@@ -1399,6 +1432,7 @@ const PriorAuthRequestApp: React.FC = () => {
     }
   ]);
 
+  
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
@@ -1456,14 +1490,8 @@ const PriorAuthRequestApp: React.FC = () => {
 
   const renderContent = () => {
     if (!isLoggedIn) {
-
-      return (
-        <div className='w-max'>
-            <LoginPage onLogin={handleLogin} />
-        </div>
-      
-      ) ;
-    }
+      return <LoginPage onLogin={handleLogin} />;
+    } 
 
     switch (activeTab) {
       case 'dashboard':
@@ -1471,17 +1499,18 @@ const PriorAuthRequestApp: React.FC = () => {
           requests={requests}
           onSelectRequest={handleSelectRequest}
           onRequestUpdate={handleRequestUpdate}
-          setActiveTab = {handleEHRChange}/>;
+          setActiveTab={handleEHRChange}
+        />;
       case 'ehr-setting':
         return <EHRConfigPage onBack={handleBackToDash}/>;
       case 'new-request':
         return <PriorAuthForm initialData={formData} onSubmit={handleNewRequestSubmit}/>;
-        case 'active-requests':
-          return <ActiveRequests 
-            requests={requests} 
-            onSelectRequest={handleSelectRequest} 
-            onRequestUpdate={handleRequestUpdate}
-          />;
+      case 'active-requests':
+        return <ActiveRequests 
+          requests={requests} 
+          onSelectRequest={handleSelectRequest} 
+          onRequestUpdate={handleRequestUpdate}
+        />;
       case 'request-details':
         const selectedRequest = requests.find((request) => request.id === selectedRequestId);
         if (!selectedRequest) {
