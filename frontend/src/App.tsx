@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AlertCircle, Check, Loader2, FileText, Settings, List, Home, Bell, Search, User, X, Command, ArrowLeft, Save } from 'lucide-react';
+import { AlertCircle, Check, Loader2, FileText, Settings, List, Home, Bell, Search, User, X, Command, ArrowLeft, Save, ChevronDown } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import logo from './serenity-logo.png';
 
@@ -55,6 +55,7 @@ interface RequestDetailsProps {
   request: AuthRequest;
   onBack: () => void;
   onUpdate: (updatedRequest: AuthRequest) => void;
+  onRequestUpdate: (id: string) => void;
 }
 
 interface RequestCardProps {
@@ -218,9 +219,14 @@ const AICommandInput: React.FC<AICommandInputProps> = ({ onSuccess, requests }) 
   );
 };
 
-const RequestDetails: React.FC<RequestDetailsProps> = ({ request, onBack, onUpdate }) => {
+const RequestDetails: React.FC<RequestDetailsProps> = ({ request, onBack, onUpdate, onRequestUpdate }) => {
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState<AuthRequest>(request);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+
+  const toggleDropdown = (id: string) => {
+    setOpenDropdown(openDropdown === id ? null : id);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -259,13 +265,41 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request, onBack, onUpda
               <CardDescription>{formData.service}</CardDescription>
             </div>
           </CardHeader>
-          <div
-            className={`px-4 py-2 rounded-full text-base font-semibold ${getStatusColor(request.status)} flex items-center space-x-2 w-32 justify-center mr-4`} 
-            style={{ minWidth: '8rem', minHeight: '2.5rem' }} // Ensures a larger button size
-          >
-            <span className={`w-3 h-3 rounded-full ${getDotColor(request.status)}`}></span>
-            <span>{capitalizeFirstLetter(request.status)}</span>
-          </div>
+              <div className="relative mr-4">
+                <div
+                  className={`px-4 py-2 rounded-full text-lg font-semibold ${getStatusColor(request.status)} flex items-center space-x-2 justify-center cursor-pointer`}
+                  style={{ minWidth: '140px', height: '40px' }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleDropdown(request.id);
+                  }}
+                >
+                  <div className={`w-3 h-3 rounded-full ${getDotColor(request.status)}`} style={{ minWidth: '12px' }}></div>
+                  <span>{capitalizeFirstLetter(request.status)}</span>
+                  {request.status === 'pending' && (
+                    <ChevronDown
+                      className="h-5 w-5 ml-1"
+                    />
+                  )}
+                </div>
+                {request.status === 'pending' && openDropdown === request.id && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                    <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent card click event
+                          onRequestUpdate(request.id);
+                          setOpenDropdown(null);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                        role="menuitem"
+                      >
+                        Request Update
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
         </div>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -593,31 +627,68 @@ const Dashboard = ({ requests }: { requests: Request[] }) => {
   );
 };
 
-const ActiveRequests: React.FC<{ requests: AuthRequest[], onSelectRequest: (id: string) => void }> = ({ requests, onSelectRequest }) => {
+const ActiveRequests: React.FC<{ requests: AuthRequest[], onSelectRequest: (id: string) => void, onRequestUpdate: (id: string) => void }> = ({ requests, onSelectRequest, onRequestUpdate }) => {
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+
+  const toggleDropdown = (id: string) => {
+    setOpenDropdown(openDropdown === id ? null : id);
+  };
+
   return (
     <ScrollArea className="h-max">
-    <div className="space-y-4">
-    {[...requests].reverse().map((request: Request) => (
-        <Card key={request.id} onClick={() => onSelectRequest(request.id)} className="cursor-pointer hover:shadow-lg transition-shadow">
-          <div className="flex justify-between items-center">
-            <div>
-              <CardHeader>
-                <CardTitle>{request.patient}</CardTitle>
-                <CardDescription>{request.service}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-black">Date: {request.date}</p>
-              </CardContent>
+      <div className="space-y-4">
+        {[...requests].reverse().map((request: Request) => (
+          <Card 
+            key={request.id} 
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => onSelectRequest(request.id)}
+          >
+            <div className="flex justify-between items-center">
+              <div>
+                <CardHeader>
+                  <CardTitle>{request.patient}</CardTitle>
+                  <CardDescription>{request.service}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-black">Date: {request.date}</p>
+                </CardContent>
+              </div>
+              <div className="relative">
+              <div
+                className={`px-2 py-1 rounded-full text-sm font-semibold ${getStatusColor(request.status)} flex items-center space-x-2 justify-center cursor-pointer`}
+                style={{ width: '110px', height: '28px' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleDropdown(request.id);
+                }}
+              >
+                <div className={`w-2 h-2 rounded-full ${getDotColor(request.status)}`} style={{ minWidth: '8px' }}></div>
+                <span>{capitalizeFirstLetter(request.status)}</span>
+                {request.status === 'pending' && <ChevronDown className="h-4 w-4 ml-1" />}
+              </div>
+                {request.status === 'pending' && openDropdown === request.id && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                    <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent card click event
+                          onRequestUpdate(request.id);
+                          setOpenDropdown(null);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                        role="menuitem"
+                      >
+                        Request Update
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(request.status)} flex items-center space-x-2 w-28 justify-center`}>
-              <span className={`w-2 h-2 rounded-full ${getDotColor(request.status)}`}></span>
-              <span>{capitalizeFirstLetter(request.status)}</span>
-            </div>
-          </div>
-        </Card>
-      ))}
-    </div>
-  </ScrollArea>
+          </Card>
+        ))}
+      </div>
+    </ScrollArea>
   );
 };
 
@@ -1046,6 +1117,12 @@ const PriorAuthRequestApp: React.FC = () => {
     setShowAlert(true);
   };
 
+  const handleRequestUpdate = (id: string) => {
+    setAlertMessage('Update requested.');
+    setShowAlert(true);
+    // add insurance company bump logic
+  };
+
   const handleNewRequestSubmit = (newRequest: AuthRequest) => {
     setRequests(prevRequests => [...prevRequests, newRequest]);
     setActiveTab('active-requests');
@@ -1070,7 +1147,6 @@ const PriorAuthRequestApp: React.FC = () => {
       )
     );
   };
-  
 
   const renderContent = () => {
     switch (activeTab) {
@@ -1078,8 +1154,12 @@ const PriorAuthRequestApp: React.FC = () => {
         return <Dashboard requests={requests} />;
       case 'new-request':
         return <PriorAuthForm initialData={formData} onSubmit={handleNewRequestSubmit}/>;
-      case 'active-requests':
-        return <ActiveRequests requests={requests} onSelectRequest={handleSelectRequest} />;
+        case 'active-requests':
+          return <ActiveRequests 
+            requests={requests} 
+            onSelectRequest={handleSelectRequest} 
+            onRequestUpdate={handleRequestUpdate}
+          />;
       case 'request-details':
         const selectedRequest = requests.find((request) => request.id === selectedRequestId);
         if (!selectedRequest) {
@@ -1090,6 +1170,7 @@ const PriorAuthRequestApp: React.FC = () => {
             request={selectedRequest}
             onBack={handleBackToRequests}
             onUpdate={handleUpdateRequest}
+            onRequestUpdate={handleRequestUpdate}
           />
         );
       case 'settings':
