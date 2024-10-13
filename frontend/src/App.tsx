@@ -79,6 +79,78 @@ interface Request {
   status: string;
 }
 
+const LoginPage = ({ onLogin }: { onLogin: () => void }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email === 'admin@providence.com' && password === 'password') {
+      onLogin();
+    } else {
+      setError('Invalid email or password');
+    }
+  };
+
+  return (
+    <div className="h-screen bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center p-4">
+      <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md">
+        <div className="text-center space-y-6 mb-8">
+        <img src={logo} alt="Logo" className="h-8 w-auto mx-auto" />
+        <h1 className="text-3xl font-extrabold text-gray-900">Log in to Serenity</h1>
+          <p className="text-gray-600">Enter your credentials to access your account</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+            <input
+              id="email"
+              type="email"
+              placeholder="m@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-md flex items-center" role="alert">
+              <AlertCircle className="text-red-400 mr-3" />
+              <span className="text-red-700">{error}</span>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="w-full bg-indigo-600 text-white py-3 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+          >
+            Log in
+          </button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <a href="#" className="text-indigo-600 hover:text-indigo-800 text-sm font-medium">Forgot password?</a>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Modal = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => void; children: React.ReactNode }) => {
   if (!isOpen) return null;
 
@@ -1070,6 +1142,7 @@ const PriorAuthRequestApp: React.FC = () => {
   const [formData, setFormData] = useState(null);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);  // New state for tracking login status
   const [requests, setRequests] = useState<AuthRequest[]>([
     {
       id: "req1",
@@ -1183,6 +1256,10 @@ const PriorAuthRequestApp: React.FC = () => {
     setShowAlert(true);
   };
 
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+  };
+
   const handleRequestUpdate = (id: string) => {
     setAlertMessage('Update request sent to insurance provider.');
     setShowAlert(true);
@@ -1215,6 +1292,10 @@ const PriorAuthRequestApp: React.FC = () => {
   };
 
   const renderContent = () => {
+    if (!isLoggedIn) {
+      return <LoginPage onLogin={handleLogin} />;
+    }
+
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard
@@ -1251,15 +1332,18 @@ const PriorAuthRequestApp: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 text-black">
-      <div className="flex-1 flex flex-col">
-        <Header activeTab={activeTab} setActiveTab={setActiveTab} openModal={openModal} />
-        <main className="flex-1 p-8 overflow-auto">
-          <h2 className="text-2xl font-semibold text-black mb-6">
-            {activeTab.charAt(0).toUpperCase() + activeTab.slice(1).replace('-', ' ')}
-          </h2>
-          {renderContent()}
-        </main>
-      </div>
+      {isLoggedIn && (
+        <div className="flex-1 flex flex-col">
+          <Header activeTab={activeTab} setActiveTab={setActiveTab} openModal={openModal} />
+          <main className="flex-1 p-8 overflow-auto">
+            <h2 className="text-2xl font-semibold text-black mb-6">
+              {activeTab.charAt(0).toUpperCase() + activeTab.slice(1).replace('-', ' ')}
+            </h2>
+            {renderContent()}
+          </main>
+        </div>
+      )}
+      {!isLoggedIn && renderContent()}
       <Modal isOpen={isModalOpen} onClose={closeModal}>
         <h2 className="text-2xl font-semibold text-black mb-4">New Request</h2>
         <AICommandInput onSuccess={handleSuccessfulGeneration} requests={requests} />
