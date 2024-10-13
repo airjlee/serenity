@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, Check, Loader2, FileText, Settings, List, Home, Bell, Search, User, X, Command, ArrowLeft, Save } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import logo from './serenity-logo.png';
 
 const Alert = ({ children }: { children: React.ReactNode }) => <div className="bg-gray-700 border-l-4 border-blue-500 text-blue-300 p-4" role="alert">{children}</div>;
@@ -10,7 +11,8 @@ const Card = ({ children, onClick, className }: { children: React.ReactNode; onC
   <div className={`bg-gray-100 shadow-md rounded px-8 pt-6 pb-8 mb-4 ${className || ''}`} onClick={onClick}>
     {children}
   </div>
-);const CardHeader = ({ children }: { children: React.ReactNode }) => <div className="mb-4">{children}</div>;
+);
+const CardHeader = ({ children }: { children: React.ReactNode }) => <div className="mb-4">{children}</div>;
 const CardTitle = ({ children }: { children: React.ReactNode }) => <h2 className="text-xl font-bold text-black">{children}</h2>;
 const CardDescription = ({ children }: { children: React.ReactNode }) => <p className="text-gray-400">{children}</p>;
 const CardContent = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
@@ -412,6 +414,147 @@ const getDotColor = (status: string) => {
 
 const capitalizeFirstLetter = (string: string) => {
   return string.charAt(0).toUpperCase() + string.slice(1);
+};
+
+const mockApprovalData = [
+  { date: '7/1/24', value: 1000 },
+  { date: '7/2/24', value: 1200 },
+  { date: '7/3/24', value: 800 },
+  { date: '7/4/24', value: 1400 },
+];
+
+const mockSubmissionData = [
+  { date: '7/1/24', value: 400 },
+  { date: '7/2/24', value: 30 },
+  { date: '7/3/24', value: 150 },
+  { date: '7/4/24', value: 220 },
+];
+
+const ChartCard = ({ title, data }) => (
+  <Card className="w-[500px]">
+    <CardHeader>
+      <CardTitle className="text-sm font-medium">{title}</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <ResponsiveContainer width="100%" height={200}>
+        <LineChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="date" />
+          <YAxis />
+          <Tooltip />
+          <Line type="monotone" dataKey="value" stroke="#8884d8" />
+        </LineChart>
+      </ResponsiveContainer>
+    </CardContent>
+  </Card>
+);
+
+const RequestCard = ({ patient, service, date, status }) => (
+  <Card className="w-full mb-4">
+    <CardContent className="flex justify-between items-center p-4">
+      <div>
+        <h3 className="font-semibold">{patient}</h3>
+        <p className="text-sm text-gray-500">{service}</p>
+        <p className="text-sm">Date: {date}</p>
+      </div>
+      <span className={`px-2 py-1 rounded-full text-xs ${
+        status === 'Pending' ? 'bg-yellow-200 text-yellow-800' : 
+        status === 'Approved' ? 'bg-green-200 text-green-800' : 
+        'bg-red-200 text-red-800'
+      }`}>
+        {status}
+      </span>
+    </CardContent>
+  </Card>
+);
+
+
+const LeftMenu = () => (
+  <div className="w-64 bg-[#f9fafb] p-6">
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold mb-2">Requests</h2>
+        <ul className="space-y-2 text-sm">
+          {['Pending Requests', 'Recent Requests', 'Approved Requests', 'Denied Requests', 'Archived Requests'].map((item) => (
+            <li key={item} className="hover:bg-gray-100 cursor-pointer">
+              {item}
+            </li>
+          ))}
+        </ul>
+      </div>
+      
+      <div>
+        <h2 className="text-lg font-semibold mb-2">Providers</h2>
+        <ul className="space-y-2 text-sm">
+          {['Manage Providers', 'Provider Directory', 'Provider Performance Metrics'].map((item) => (
+            <li key={item} className="hover:bg-gray-100 cursor-pointer">
+              {item}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold mb-2">Patients</h2>
+        <ul className="space-y-2 text-sm">
+          {['Patient Directory', 'Patient Profiles', 'Request History by Patient'].map((item) => (
+            <li key={item} className="hover:bg-gray-100 cursor-pointer">
+              {item}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold mb-2">Reports</h2>
+        <ul className="space-y-2 text-sm">
+          {['Request Trends', 'Approval Rates', 'Denial Reasons', 'Custom Reports'].map((item) => (
+            <li key={item} className="hover:bg-gray-100 cursor-pointer">
+              {item}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold mb-2">Settings</h2>
+        <ul className="space-y-2 text-sm">
+          {['User Preferences', 'Notification Settings', 'Account', 'Sign Out'].map((item) => (
+            <li key={item} className="hover:bg-gray-100 cursor-pointer">
+              {item}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </div>
+);
+
+
+
+const Dashboard = ({ requests }) => {
+  return (
+    <div className="flex">
+      <LeftMenu />
+      <div className="flex-1 p-6">
+        <h1 className="text-2xl font-bold mb-6">Analytics</h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <ChartCard title="Average Prior Auth Approval Time" data={mockApprovalData} />
+          <ChartCard title="Average Prior Auth Submission Time" data={mockSubmissionData} />
+        </div>
+        <h2 className="text-xl font-semibold mb-4">Requests</h2>
+        {requests.slice(0, 2).map((request) => (
+          <RequestCard 
+            key={request.id}
+            patient={request.patient}
+            service={request.service}
+            date={request.date}
+            status={request.status}
+          />
+        ))}
+      </div>
+    </div>
+  );
 };
 
 const ActiveRequests: React.FC<{ requests: AuthRequest[], onSelectRequest: (id: string) => void }> = ({ requests, onSelectRequest }) => {
@@ -826,7 +969,7 @@ const PriorAuthRequestApp: React.FC = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <div className="text-black">Dashboard content goes here</div>;
+        return <Dashboard requests={requests} />;
       case 'new-request':
         return <PriorAuthForm />;
       case 'active-requests':
