@@ -536,7 +536,7 @@ const Dashboard = ({ requests }) => {
   return (
     <div className="flex">
       <LeftMenu />
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-2">
         <h1 className="text-2xl font-bold mb-6">Analytics</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <ChartCard title="Average Prior Auth Approval Time" data={mockApprovalData} />
