@@ -470,7 +470,7 @@ const RequestCard = ({ patient, service, date, status }) => (
 
 
 const LeftMenu = () => (
-  <div className="w-64 bg-[#f9fafb] p-6">
+  <div className="w-64 bg-[#f9fafb] p-2">
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold mb-2">Requests</h2>
