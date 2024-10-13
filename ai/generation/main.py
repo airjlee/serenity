@@ -31,7 +31,7 @@ def generate_content(patient_info, procedure):
     
     {
       "patientName": "",
-      "patientDOB": "",
+      "patientDOB" (yyyy-MM-dd format): "",
       "patientGender": "",
       "patientAddress": "",
       "patientCity": "",
@@ -47,11 +47,12 @@ def generate_content(patient_info, procedure):
       "servicingProviderName": "",
       "servicingProviderNPI": "",
       
-      "serviceType": "",
+      "serviceType (format "procedure" to be in proper langauge): "",
       "serviceStartDate": "",
       "cptCodes": "",
       "icdCodes": "",
-      "clinicalJustification": ""
+      summaryMedicalNeed: '',
+      reasonsRequestedMedication: '',
     }
     
     Don’t include any other information besides the json data.

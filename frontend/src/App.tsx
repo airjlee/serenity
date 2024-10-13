@@ -3,7 +3,7 @@ import { AlertCircle, Check, Loader2, FileText, Settings, List, Home, Bell, Sear
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import logo from './serenity-logo.png';
 
-const Alert = ({ children }: { children: React.ReactNode }) => <div className="bg-gray-700 border-l-4 border-blue-500 text-blue-300 p-4" role="alert">{children}</div>;
+const Alert = ({ children }: { children: React.ReactNode }) => <div className="bg-red-200 border-l-4 border-red-500 text-black p-4" role="alert">{children}</div>;
 const AlertTitle = ({ children }: { children: React.ReactNode }) => <p className="font-bold">{children}</p>;
 const AlertDescription = ({ children }: { children: React.ReactNode }) => <p>{children}</p>;
 const Button = ({ children, variant, size, className, ...props }: any) => <button className={`px-4 py-2 bg-blue-200 text-black rounded ${className}`} {...props}>{children}</button>;
@@ -16,7 +16,7 @@ const CardHeader = ({ children }: { children: React.ReactNode }) => <div classNa
 const CardTitle = ({ children }: { children: React.ReactNode }) => <h2 className="text-xl font-bold text-black">{children}</h2>;
 const CardDescription = ({ children }: { children: React.ReactNode }) => <p className="text-gray-400">{children}</p>;
 const CardContent = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
-const Input = (props: any) => <input className="bg-blue-200 shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline" {...props} />;
+const Input = (props: any) => <input className="bg-white shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline" {...props} />;
 const ScrollArea = ({ children, className }: { children: React.ReactNode, className: string }) => <div className={`overflow-auto ${className}`}>{children}</div>;
 
 interface AuthRequest {
@@ -72,7 +72,7 @@ const Modal = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => 
 };
 
 interface AICommandInputProps {
-  onSuccess: () => void;
+  onSuccess: (data: any) => void;
   requests: AuthRequest[];
 }
 
@@ -128,7 +128,7 @@ const AICommandInput: React.FC<AICommandInputProps> = ({ onSuccess, requests }) 
 
       const data = await response.json();
       setResult('Request generated successfully.');
-      onSuccess();
+      onSuccess(data);
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred.');
     } finally {
@@ -536,7 +536,7 @@ const Dashboard = ({ requests }) => {
   return (
     <div className="flex">
       <LeftMenu />
-      <div className="flex-1 p-2">
+      <div className="flex-1">
         <h1 className="text-2xl font-bold mb-6">Analytics</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <ChartCard title="Average Prior Auth Approval Time" data={mockApprovalData} />
@@ -635,20 +635,24 @@ const Header: React.FC<{ activeTab: string, setActiveTab: (tab: string) => void,
   </header>
 );
 
-const PriorAuthForm = () => {
+interface PriorAuthFormProps {
+  initialData?: any;
+}
+
+const PriorAuthForm: React.FC<PriorAuthFormProps> = ({ initialData }) => {
   const [formData, setFormData] = useState({
     // Patient Information
-    patientName: '',
+    patientName: 'Bee',
     patientDOB: '',
     patientGender: '',
     patientAddress: '',
     patientCity: '',
     patientState: '',
     patientZip: '',
-    patientPhone: '',
     patientEmail: '',
     patientInsuranceId: '',
-    
+    patientInsuranceName:'',
+
     // Provider Information
     referringProviderName: '',
     referringProviderNPI: '',
@@ -684,6 +688,20 @@ const PriorAuthForm = () => {
     physicianPrognosis: '',
     diseaseProgression: '',
   });
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData(prevState => ({
+        ...prevState,
+        ...initialData.content
+      }));
+    }
+
+    console.log("insruancename:", initialData.content.patientInsuranceName);
+   
+  }, [initialData]);
+
+  
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -734,8 +752,8 @@ const PriorAuthForm = () => {
                 <Input name="patientInsuranceId" value={formData.patientInsuranceId} onChange={handleInputChange} required />
               </div>
               <div>
-                <label htmlFor="patientPhone" className="block text-sm font-medium mb-1">Phone</label>
-                <Input name="patientPhone" value={formData.patientPhone} onChange={handleInputChange} required />
+                <label htmlFor="patientInsuranceName" className="block text-sm font-medium mb-1">Health Insurance Name</label>
+                <Input name="patientInsuranceName" value={formData.patientInsuranceName} onChange={handleInputChange} required />
               </div>
             </div>
           </div>
@@ -775,10 +793,10 @@ const PriorAuthForm = () => {
                 <label htmlFor="serviceType" className="block text-sm font-medium mb-1">Type of Service Requested</label>
                 <Input name="serviceType" value={formData.serviceType} onChange={handleInputChange} required />
               </div>
-              <div>
+              {/* <div>
                 <label htmlFor="serviceStartDate" className="block text-sm font-medium mb-1">Service Start Date</label>
                 <Input name="serviceStartDate" type="date" value={formData.serviceStartDate} onChange={handleInputChange} required />
-              </div>
+              </div> */}
               <div>
                 <label htmlFor="cptCodes" className="block text-sm font-medium mb-1">CPT Codes</label>
                 <Input name="cptCodes" value={formData.cptCodes} onChange={handleInputChange} required />
@@ -799,7 +817,7 @@ const PriorAuthForm = () => {
                 value={formData.summaryMedicalNeed}
                 onChange={handleInputChange}
                 rows={4}
-                className="bg-blue-200 shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline"
+                className="bg-white shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline"
                 required
               />
             </div>
@@ -810,7 +828,7 @@ const PriorAuthForm = () => {
                 value={formData.reasonsRequestedMedication}
                 onChange={handleInputChange}
                 rows={4}
-                className="bg-blue-200 shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-300 leading-tight focus:outline-none focus:shadow-outline"
+                className="bg-white shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline"
                 required
               />
             </div>
@@ -819,14 +837,22 @@ const PriorAuthForm = () => {
           {/* Add remaining sections (Patient Diagnosis, Patient Medical Records, Patient History, Physician Opinion) following the same pattern */}
 
           <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Important</AlertTitle>
+              <div className="flex items-center">
+             <AlertCircle className="h-4 mr-2 w-4" />
+                <AlertTitle className="ml-2">Important</AlertTitle>
+    </div>
+
             <AlertDescription>
               Please ensure all information is accurate and complete before submission. Inaccurate or incomplete information may delay the authorization process.
             </AlertDescription>
+            
           </Alert>
 
-          <Button type="submit" className="w-full">Submit Comprehensive Prior Authorization Request</Button>
+         <div className="flex justify-center">
+  <Button type="submit" className="bg-blue-20  h-16 w-full">
+    Submit Request
+  </Button>
+</div>
         </form>
       </CardContent>
 
@@ -838,6 +864,7 @@ const PriorAuthRequestApp: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [formData, setFormData] = useState(null);
   const [requests, setRequests] = useState<AuthRequest[]>([
     {
       id: "req1",
@@ -943,7 +970,8 @@ const PriorAuthRequestApp: React.FC = () => {
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
-  const handleSuccessfulGeneration = () => {
+  const handleSuccessfulGeneration = (data: any) => {
+    setFormData(data);
     closeModal();
     setActiveTab('new-request');
   };
@@ -971,7 +999,7 @@ const PriorAuthRequestApp: React.FC = () => {
       case 'dashboard':
         return <Dashboard requests={requests} />;
       case 'new-request':
-        return <PriorAuthForm />;
+        return <PriorAuthForm initialData={formData}/>;
       case 'active-requests':
         return <ActiveRequests requests={requests} onSelectRequest={handleSelectRequest} />;
       case 'request-details':
