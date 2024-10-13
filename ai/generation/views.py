@@ -12,15 +12,33 @@ def generate_content_view(request):
         data = json.loads(request.body)
 
         # Extract 'patient_info' and 'procedure' from the JSON data
-        patient_info = data.get('patient_info', '')
+        patient_info = data.get('patient_info', {})
         procedure = data.get('procedure', '')
 
         # Ensure both 'patient_info' and 'procedure' are provided
         if not patient_info or not procedure:
             return JsonResponse({'error': 'Both patient_info and procedure are required'}, status=400)
 
-        # Generate content using the AI model with the patient_info and procedure
-        content = generate_content(patient_info, procedure)
+        # Extract individual fields from patient_info
+        patient_name = patient_info.get('patientName', '')
+        patient_dob = patient_info.get('patientDOB', '')
+        patient_gender = patient_info.get('patientGender', '')
+        patient_address = patient_info.get('patientAddress', '')
+        patient_email = patient_info.get('patientEmail', '')
+        patient_insurance_id = patient_info.get('patientInsuranceId', '')
+        patient_insurance_name = patient_info.get('patientInsuranceName', '')
+
+        # Generate content using the AI model with individual patient info fields and procedure
+        content = generate_content(
+            patient_name,
+            patient_dob,
+            patient_gender,
+            patient_address,
+            patient_email,
+            patient_insurance_id,
+            patient_insurance_name,
+            procedure
+        )
 
         # Return the generated content as a JSON response
         return JsonResponse({'content': content}, status=200)

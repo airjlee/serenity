@@ -9,19 +9,25 @@ client = boto3.client('bedrock-runtime')
 
 
 # Function to call the Sonnet 3.5 model through Bedrock
-def generate_content(patient_info, procedure):
-    prompt = """
+def generate_content(patient_name,
+            patient_dob,
+            patient_gender,
+            patient_address,
+            patient_email,
+            patient_insurance_id,
+            patient_insurance_name, procedure):
+    prompt = f"""
     You are an AI assistant tasked with filling out a comprehensive prior authorization form for a medical procedure. You will be provided with basic patient information, insurance details, and the name of the procedure. Your task is to generate consistent and plausible information for each section of the form, and return the responses in parseable json.
 
     Given Information:
-    - Patient Name: [Jordan Lee]
-    - Patient Date of Birth: [09/09/2004]
-    - Patient Gender: [Male]
-    - Patient Address: [5908 111th ST SW Mukilteo, WA]
-    - Patient Email: [airjlee04@gmail.com]
-    - Health Insurance ID Number: [12345]
-    - Health insurance name: [Primera Blue Cross]
-    - Name of Procedure: [MRI right shoulder]'
+    - Patient Name: {patient_name}
+    - Patient Date of Birth: {patient_dob}
+    - Patient Gender: {patient_gender}
+    - Patient Address: {patient_address}
+    - Patient Email: {patient_email}
+    - Health Insurance ID Number: {patient_insurance_id}
+    - Health insurance name: {patient_insurance_name}
+    - Name of Procedure: {procedure}
         referringProviderName": "Providence",
       "referringProviderNPI": "1316041056",
       "servicingProviderName": "Providence",
@@ -29,7 +35,7 @@ def generate_content(patient_info, procedure):
     
     Please fill out the following form of the prior authorization form using the data you are provided, and only use that information. Pull the most relevant clinical justifications and reasoning that you can, to ensure that the authorization gets approved, and return it in JSON FORM!
     
-    {
+    
       "patientName": "",
       "patientDOB" (yyyy-MM-dd format): "",
       "patientGender": "",
@@ -53,7 +59,7 @@ def generate_content(patient_info, procedure):
       "icdCodes": "",
       summaryMedicalNeed: '',
       reasonsRequestedMedication: '',
-    }
+    
     
     Don’t include any other information besides the json data.
     
@@ -175,14 +181,14 @@ def generate_content(patient_info, procedure):
 #     return response
 
 
-if __name__ == "__main__":
-    prompt = "Say hello, but in Json"
-    response = generate_content("", "")
-    print(response)
-    # # Example patient information and procedure
-    # patient_info = ""
-    # procedure = "MRI Right shoulder"
-    #
-    # # Call the function and print the result
-    # response = generate_content(patient_info, procedure)
-    # print(response.text)
+# if __name__ == "__main__":
+#     prompt = "Say hello, but in Json"
+#     response = generate_content("", "")
+#     print(response)
+#     # # Example patient information and procedure
+#     # patient_info = ""
+#     # procedure = "MRI Right shoulder"
+#     #
+#     # # Call the function and print the result
+#     # response = generate_content(patient_info, procedure)
+#     # print(response.text)

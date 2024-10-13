@@ -24,6 +24,13 @@
   color: white;
 }
 
+body {
+  overflow: hidden; /* Hide scrollbars */
+}
+
+
+
+
 .App-link {
   color: #61dafb;
 }
@@ -36,3 +43,5 @@
     transform: rotate(360deg);
   }
 }
+
+

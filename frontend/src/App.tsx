@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AlertCircle, Check, Loader2, FileText, Settings, List, Home, Bell, Search, User, X, Command, ArrowLeft, Save, ChevronDown } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import logo from './serenity-logo.png';
+import { patients, Patient } from './Patient';
 
 const Alert = ({ children }: { children: React.ReactNode }) => <div className="bg-red-200 border-l-4 border-red-500 text-black p-4" role="alert">{children}</div>;
 const AlertS = ({ children }: { children: React.ReactNode }) => <div className="bg-green-200 border-l-4 border-green-500 text-black p-4" role="alert">{children}</div>;
@@ -94,12 +95,11 @@ const LoginPage = ({ onLogin }: { onLogin: () => void }) => {
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center p-4">
-      <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md">
+    <div className="flex items-center justify-center min-h-screen w-full bg-gradient-to-br from-indigo-100 to-purple-100">
+      <div className="w-full max-w-md p-8 bg-white shadow-xl rounded-2xl">
         <div className="text-center space-y-6 mb-8">
-        <img src={logo} alt="Logo" className="h-8 w-auto mx-auto" />
-        <h1 className="text-3xl font-extrabold text-gray-900">Log in to Serenity</h1>
-          <p className="text-gray-600">Enter your credentials to access your account</p>
+          <img src={logo} alt="Logo" className="h-12 w-auto mx-auto" />
+          <p className="text-gray-600 text-sm">Sign-in with your organization</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -151,6 +151,7 @@ const LoginPage = ({ onLogin }: { onLogin: () => void }) => {
   );
 };
 
+
 const Modal = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => void; children: React.ReactNode }) => {
   if (!isOpen) return null;
 
@@ -168,7 +169,7 @@ const Modal = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => 
 
 interface AICommandInputProps {
   onSuccess: (data: any) => void;
-  requests: AuthRequest[];
+  requests: Patient[];
 }
 
 const AICommandInput: React.FC<AICommandInputProps> = ({ onSuccess, requests }) => {
@@ -177,14 +178,14 @@ const AICommandInput: React.FC<AICommandInputProps> = ({ onSuccess, requests }) 
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [filteredRequests, setFilteredRequests] = useState<AuthRequest[]>([]);
-  const [selectedRequest, setSelectedRequest] = useState<AuthRequest | null>(null);
+  const [filteredRequests, setFilteredRequests] = useState<Patient[]>([]);
+  const [selectedRequest, setSelectedRequest] = useState<Patient | null>(null);
 
   useEffect(() => {
     if (patientInfo.length > 2) {
       const filtered = requests.filter(request =>
         request.patientName.toLowerCase().includes(patientInfo.toLowerCase()) ||
-        request.patientInsuranceId.includes(patientInfo)
+        request.patientDateOfBirth.includes(patientInfo)
       );
       setFilteredRequests(filtered);
     } else {
@@ -192,9 +193,9 @@ const AICommandInput: React.FC<AICommandInputProps> = ({ onSuccess, requests }) 
     }
   }, [patientInfo, requests]);
 
-  const handlePatientSelect = (request: AuthRequest) => {
+  const handlePatientSelect = (request: Patient) => {
     setSelectedRequest(request);
-    setPatientInfo(`${request.patientName} (${request.patientInsuranceId})`);
+    setPatientInfo(`${request.patientName} (${request.patientDateOfBirth})`);
     setFilteredRequests([]);
   };
 
@@ -205,15 +206,25 @@ const AICommandInput: React.FC<AICommandInputProps> = ({ onSuccess, requests }) 
     setError(null);
 
     try {
+      const requestBody = {
+        patient_info: selectedRequest ? {
+          patientName: selectedRequest.patientName,
+          patientDOB: selectedRequest.patientDateOfBirth,
+          patientGender: selectedRequest.patientGender,
+          patientAddress: selectedRequest.patientAddress,
+          patientEmail: selectedRequest.patientEmail,
+          patientInsuranceId: selectedRequest.healthInsuranceIDNumber,
+          patientInsuranceName: selectedRequest.healthInsuranceName,
+        } : patientInfo,
+        procedure: procedure,
+      };
+
       const response = await fetch('http://localhost:8000/api/generate/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          patient_info: selectedRequest || patientInfo,
-          procedure: procedure
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
@@ -251,11 +262,11 @@ const AICommandInput: React.FC<AICommandInputProps> = ({ onSuccess, requests }) 
               <ul className="absolute z-10 w-full bg-white border border-gray-300 mt-1 max-h-60 overflow-auto rounded-md shadow-lg">
                 {filteredRequests.map((request) => (
                   <li
-                    key={request.id}
+                    key={request.patientName}
                     className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                     onClick={() => handlePatientSelect(request)}
                   >
-                    {request.patientName} ({request.patientInsuranceId})
+                    {request.patientName} ({request.patientDateOfBirth})
                   </li>
                 ))}
               </ul>
@@ -1293,7 +1304,13 @@ const PriorAuthRequestApp: React.FC = () => {
 
   const renderContent = () => {
     if (!isLoggedIn) {
-      return <LoginPage onLogin={handleLogin} />;
+
+      return (
+        <div className='w-max'>
+            <LoginPage onLogin={handleLogin} />
+        </div>
+      
+      ) ;
     }
 
     switch (activeTab) {
@@ -1346,7 +1363,7 @@ const PriorAuthRequestApp: React.FC = () => {
       {!isLoggedIn && renderContent()}
       <Modal isOpen={isModalOpen} onClose={closeModal}>
         <h2 className="text-2xl font-semibold text-black mb-4">New Request</h2>
-        <AICommandInput onSuccess={handleSuccessfulGeneration} requests={requests} />
+        <AICommandInput onSuccess={handleSuccessfulGeneration} requests={patients} />
       </Modal>
       {showAlert && (
         <SuccessAlert
