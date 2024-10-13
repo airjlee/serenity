@@ -56,6 +56,21 @@ interface RequestDetailsProps {
   onUpdate: (updatedRequest: AuthRequest) => void;
 }
 
+interface RequestCardProps {
+  patient: string;
+  service: string;
+  date: string;
+  status: string;
+}
+
+interface Request {
+  id: string;
+  patient: string;
+  service: string;
+  date: string;
+  status: string;
+}
+
 const Modal = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => void; children: React.ReactNode }) => {
   if (!isOpen) return null;
 
@@ -430,11 +445,13 @@ const mockSubmissionData = [
   { date: '7/4/24', value: 220 },
 ];
 
-const ChartCard = ({ title, data }) => (
+const ChartCard = ({ title, data }: { title: string; data: any[] }) => (
   <Card className="w-[500px]">
-    <CardHeader>
-      <CardTitle className="text-sm font-medium">{title}</CardTitle>
-    </CardHeader>
+    <div >
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+      </CardHeader>
+    </div>
     <CardContent>
       <ResponsiveContainer width="100%" height={200}>
         <LineChart data={data}>
@@ -449,22 +466,24 @@ const ChartCard = ({ title, data }) => (
   </Card>
 );
 
-const RequestCard = ({ patient, service, date, status }) => (
+const RequestCard = ({ patient, service, date, status }: RequestCardProps) => (
   <Card className="w-full mb-4">
-    <CardContent className="flex justify-between items-center p-4">
-      <div>
-        <h3 className="font-semibold">{patient}</h3>
-        <p className="text-sm text-gray-500">{service}</p>
-        <p className="text-sm">Date: {date}</p>
-      </div>
-      <span className={`px-2 py-1 rounded-full text-xs ${
-        status === 'Pending' ? 'bg-yellow-200 text-yellow-800' : 
-        status === 'Approved' ? 'bg-green-200 text-green-800' : 
-        'bg-red-200 text-red-800'
-      }`}>
-        {status}
-      </span>
-    </CardContent>
+    <div className="flex justify-between items-center p-4">
+      <CardContent>
+        <div>
+          <h3 className="font-semibold">{patient}</h3>
+          <p className="text-sm text-gray-500">{service}</p>
+          <p className="text-sm">Date: {date}</p>
+        </div>
+        <span className={`px-2 py-1 rounded-full text-xs ${
+          status === 'Pending' ? 'bg-yellow-200 text-yellow-800' : 
+          status === 'Approved' ? 'bg-green-200 text-green-800' : 
+          'bg-red-200 text-red-800'
+        }`}>
+          {status}
+        </span>
+      </CardContent>
+    </div>
   </Card>
 );
 
@@ -532,7 +551,7 @@ const LeftMenu = () => (
 
 
 
-const Dashboard = ({ requests }) => {
+const Dashboard = ({ requests }: { requests: Request[] }) => {
   return (
     <div className="flex">
       <LeftMenu />
@@ -561,7 +580,7 @@ const ActiveRequests: React.FC<{ requests: AuthRequest[], onSelectRequest: (id: 
   return (
     <ScrollArea className="h-max">
       <div className="space-y-4">
-        {requests.map((request) => (
+      {requests.map((request: Request) => (
           <Card key={request.id} onClick={() => onSelectRequest(request.id)} className="cursor-pointer hover:shadow-lg transition-shadow">
             <div className="flex justify-between items-center">
               <div>
@@ -837,9 +856,11 @@ const PriorAuthForm: React.FC<PriorAuthFormProps> = ({ initialData }) => {
           {/* Add remaining sections (Patient Diagnosis, Patient Medical Records, Patient History, Physician Opinion) following the same pattern */}
 
           <Alert>
-              <div className="flex items-center">
-             <AlertCircle className="h-4 mr-2 w-4" />
-                <AlertTitle className="ml-2">Important</AlertTitle>
+            <div className="flex items-center">
+          <AlertCircle className="h-4 mr-2 w-4" />
+          <span className="ml-2">
+            <AlertTitle>Important</AlertTitle>
+          </span>
     </div>
 
             <AlertDescription>
