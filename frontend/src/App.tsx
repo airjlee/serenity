@@ -58,6 +58,12 @@ interface RequestDetailsProps {
   onRequestUpdate: (id: string) => void;
 }
 
+interface DashboardProps {
+  requests: Request[];
+  onSelectRequest: (id: string) => void;
+  onRequestUpdate: (id: string) => void;
+}
+
 interface RequestCardProps {
   patient: string;
   service: string;
@@ -601,8 +607,13 @@ const LeftMenu = () => (
 );
 
 
+const Dashboard = ({ requests, onSelectRequest, onRequestUpdate }: DashboardProps) => {
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
-const Dashboard = ({ requests }: { requests: Request[] }) => {
+  const toggleDropdown = (id: string) => {
+    setOpenDropdown(openDropdown === id ? null : id);
+  };
+
   return (
     <div className="flex">
       <LeftMenu />
@@ -612,16 +623,71 @@ const Dashboard = ({ requests }: { requests: Request[] }) => {
           <ChartCard title="Average Prior Auth Approval Time" data={mockApprovalData} />
           <ChartCard title="Average Prior Auth Submission Time" data={mockSubmissionData} />
         </div>
-        <h2 className="text-xl font-semibold mb-4">Requests</h2>
-        {requests.slice(0, 2).map((request) => (
-          <RequestCard 
-            key={request.id}
-            patient={request.patient}
-            service={request.service}
-            date={request.date}
-            status={request.status}
-          />
-        ))}
+        <h2 className="text-xl font-semibold mb-4">Recent Requests</h2>
+        <div className="space-y-4">
+          {requests.slice(0, 2).map((request) => (
+            <Card
+              key={request.id}
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => onSelectRequest(request.id)}
+            >
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardHeader>
+                    <CardTitle>{request.patient}</CardTitle>
+                    <CardDescription>{request.service}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-black">Date: {request.date}</p>
+                  </CardContent>
+                </div>
+                <div className="relative mr-4">
+                  <div
+                    className={`px-2 py-1 rounded-full text-sm font-semibold ${getStatusColor(
+                      request.status
+                    )} flex items-center space-x-2 justify-center cursor-pointer`}
+                    style={{ width: '110px', height: '28px' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleDropdown(request.id);
+                    }}
+                  >
+                    <div
+                      className={`w-2 h-2 rounded-full ${getDotColor(request.status)}`}
+                      style={{ minWidth: '8px' }}
+                    ></div>
+                    <span>{capitalizeFirstLetter(request.status)}</span>
+                    {request.status === 'pending' && (
+                      <ChevronDown className="h-4 w-4 ml-1" />
+                    )}
+                  </div>
+                  {request.status === 'pending' && openDropdown === request.id && (
+                    <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                      <div
+                        className="py-1"
+                        role="menu"
+                        aria-orientation="vertical"
+                        aria-labelledby="options-menu"
+                      >
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onRequestUpdate(request.id);
+                            setOpenDropdown(null);
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                          role="menuitem"
+                        >
+                          Request Update
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -1151,7 +1217,10 @@ const PriorAuthRequestApp: React.FC = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard requests={requests} />;
+        return <Dashboard
+          requests={requests}
+          onSelectRequest={handleSelectRequest}
+          onRequestUpdate={handleRequestUpdate}/>;
       case 'new-request':
         return <PriorAuthForm initialData={formData} onSubmit={handleNewRequestSubmit}/>;
         case 'active-requests':
